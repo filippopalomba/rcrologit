@@ -18,7 +18,7 @@ rcrologit(
 \item{dataPrep}{object of class 'rcrologit' prepared via \code{\link{dataPrep}}.}
 
 \item{Sigma}{structure of the variance-covariance of the random coefficients. It must be one of
-"diagonal" or "cholesky". Default is \code{Sigma="diagonal"}.}
+"diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.}
 
 \item{S}{integer denoting the number of simulations when approximating the integrals in the conditional
 choice probabilities. Default is \code{S=50}.}
@@ -39,12 +39,49 @@ errors robust to misspecification; "skip" which makes R skip the computation of 
 \value{
 The function returns a list containing the following objects:
 \item{b}{vector containing all the estimated parameters}
-\item{bfix}{vector containing the estimated parameters corresponding to the \verb{fixed'' coefficients\} \\item\{bhet\}\{vector containing the estimated parameters corresponding to the }random'' coefficients}
+\item{bfix}{vector containing the estimated parameters corresponding to the "fixed" coefficients}
+\item{bhet}{vector containing the estimated parameters corresponding to the "random" coefficients}
 \item{Lambda}{loading matrix of the shocks to the random coefficients}
 \item{Sigma}{variance-covariance matrix of the estimated parameters}
 }
 \description{
-Estimation and Inference for Random Coefficients Rank-Ordered Logit
+This function takes the object prepared by \code{dataPrep} and estimates a
+random coefficient rank-ordered logit. The rank-ordered logit - sometimes termed \emph{exploded logit model} - was
+originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rcrologit} and it is an extension of the
+\insertCite{luce1959IndividualChoiceBehavior;textual}{rcrologit}-\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit} model.
+
+These models automatically implies independence of irrelevant alternatives \insertCite{debreu1960ReviewRDLuce}{rcrologit}. However,
+\insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes (i.e., random coefficients), then the conditional
+probability choices induced by the latent utility model can match those implied by virtually any
+discrete choice probability model.
+
+The package \code{\link{rcrologit}}, depending on the type of covariates specified in \code{dataPrep},
+allows the user to estimate:
+\itemize{
+\item{the standard rank-ordered logit model if either \code{covs.fix} or \code{covsInt.fix} are specified.}
+\item{the random coefficients rank-ordered logit model if either \code{covs.het} or \code{covsInt.het} are specified.}
+\item{the mixed random coefficients rank-ordered logit model if at least one of \code{covs.fix} or \code{covsInt.fix} and
+at least one of \code{covs.het} or \code{covsInt.het} are specified.}
+}
+
+For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
+}
+\details{
+\itemize{
+\item{\strong{Variance-Covariance of random parameters.} The option \code{Sigma} allows the user to
+model directly the covariance structure of the random coefficients. Precisely, it shape \eqn{\boldsymbol{\Sigma}} in
+\deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
+\mathsf{N}\left(\left[\begin{array}{c}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],
+\boldsymbol{\Sigma}\right).}
+In practice, to avoid issues with the positive-definiteness of \eqn{\boldsymbol{\Sigma}} during the optimization routine,
+it is more convenient to model the random coefficients as
+\deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]=
+\left[\begin{array}{c}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right] + \Lambda u_i,
+\quad u_i\sim\mathsf{N}(0,\boldsymbol{I}).}
+The option \code{Sigma} directly models the shape of \eqn{\Lambda} and allows the user to choose between a diagonal structure
+(\code{Sigma="diagonal"}) and a lower-triangular structure (\code{Sigma="cholesky"}).
+}
+}
 }
 \examples{
 data <- rcrologit_data
@@ -55,6 +92,9 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                      
 rologitEst <- rcrologit(dataprep)
 
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 \code{\link{dataPrep}}

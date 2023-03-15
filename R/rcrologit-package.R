@@ -11,9 +11,12 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom methods is
 #' @importFrom numDeriv hessian
-#'
+#' @importFrom Rdpack reprompt
+#' 
 #' @rawNamespace import(stats, except = c(lag, filter, power))
 #' @rawNamespace import(rlang, except = c(is_vector, is_complex))
+#'
+#' @docType package
 #'
 #' @aliases rcrologit-package
 "_PACKAGE"

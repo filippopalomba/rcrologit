@@ -6,6 +6,7 @@ import(rlang, except = c(is_vector, is_complex))
 
 import(stats, except = c(lag, filter, power))
 importFrom(MASS,mvrnorm)
+importFrom(Rdpack,reprompt)
 importFrom(fastDummies,dummy_cols)
 importFrom(methods,is)
 importFrom(numDeriv,hessian)

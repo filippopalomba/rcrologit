@@ -47,7 +47,26 @@ The function returns a list containing the following objects:
 \item{param.spec}{a list containing some parameters describing the specification chosen by the user}
 }
 \description{
-Data Preparation for Estimation of Random Coefficients Rank-Ordered Logit
+This function prepares the data for estimation of a random coefficient rank-ordered
+logit. The rank-ordered logit - sometimes termed \emph{exploded logit model} - was
+originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rcrologit} and it is an extension of the
+\insertCite{luce1959IndividualChoiceBehavior;textual}{rcrologit}-\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit} model.
+
+These models automatically implies independence of irrelevant alternatives \insertCite{debreu1960ReviewRDLuce}{rcrologit}. However,
+\insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes (i.e., random coefficients), then the conditional
+probability choices induced by the latent utility model can match those implied by virtually any
+discrete choice probability model.
+
+The package \code{\link{rcrologit}}, depending on the type of covariates specified in \code{dataPrep},
+allows the user to estimate:
+\itemize{
+\item{the standard rank-ordered logit model if either \code{covs.fix} or \code{covsInt.fix} are specified.}
+\item{the random coefficients rank-ordered logit model if either \code{covs.het} or \code{covsInt.het} are specified.}
+\item{the mixed random coefficients rank-ordered logit model if at least one of \code{covs.fix} or \code{covsInt.fix} and
+at least one of \code{covs.het} or \code{covsInt.het} are specified.}
+}
+
+For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 }
 \details{
 The function prepares the data to estimate a random coefficient rank-ordered logit model induced by the latent utility model (McFadden, 1974)
@@ -57,18 +76,26 @@ In its most general form, we model \eqn{u_{i\ell}} as
 W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_i + \delta_\ell}
 where
 \itemize{
-\item{\eqn{X_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as fixed}
-\item{\eqn{Z_{i}} are covariates varying at the unit level whose coefficients are modelled as fixed}
-\item{\eqn{W_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as random}
-\item{\eqn{V_{i}} are covariates varying at the unit level whose coefficients are modelled as random}
+\item{\eqn{X_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as fixed.
+The user can specify these covariates via the option \code{covs.fix}.}
+\item{\eqn{Z_{i}} are covariates varying at the unit level whose coefficients are modelled as fixed.
+The user can specify these covariates via the option \code{covsInt.fix}.}
+\item{\eqn{W_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as random.
+The user can specify these covariates via the option \code{covs.het}.}
+\item{\eqn{V_{i}} are covariates varying at the unit level whose coefficients are modelled as random.
+The user can specify these covariates via the option \code{covsInt.het}.}
 \item{the random coefficients}{ are modeled as a joint multivariate normal and are i.i.d. across units,
 \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
 \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right) }}
-\item{\eqn{\delta_\ell}}{ are alternative-specific fixed effects}
-\item{\eqn{\epsilon_{i\ell}\sim\mathrm{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
+\item{\eqn{\delta_\ell}}{ are alternative-specific fixed effects that can be specified via the option \code{FE}.}
+\item{\eqn{\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
 }
 The parameter vector to be estimated is thus
-\deqn{\theta = \left(\right)^\top}
+\deqn{\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,
+\boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top,
+\mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=0}^J\right)^\top.}
+
+For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 }
 \examples{
 data <- rcrologit_data
@@ -81,9 +108,7 @@ rologitEst <- rcrologit(dataprep)
 
 }
 \references{
-\itemize{
-\item{McFadden, Daniel. “Frontiers in Econometrics.” In \emph{Conditional Logit Analysis of Qualitative Choice Behavior}, 105–42, 1974.}
-}
+\insertAllCited{}
 }
 \seealso{
 \code{\link{rcrologit}}
