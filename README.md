@@ -7,7 +7,6 @@
 [![](https://img.shields.io/badge/devel%20version-0.0.1-blue.svg)](https://github.com/filippopalomba/rcrologit)
 [![R build
 status](https://github.com/filippopalomba/rcrologit/workflows/R-CMD-check/badge.svg)](https://github.com/filippopalomba/rcrologit/actions)
-[![](https://img.shields.io/github/last-commit/filippopalomba/rcrologit.svg)](https://github.com/filippopalomba/rcrologit)
 
 <!-- badges: end -->
 
@@ -43,8 +42,8 @@ where:
   are modelled as random the random coefficients are modeled as a joint
   multivariate normal and are i.i.d. across units,
   $$
-  \left[\begin{array}{c}\bm{\alpha}_i \\ \bm{\beta}_i \end{array}\right]\sim
-   \mathsf{N}\left(\left[\begin{array}{l}\bm{\alpha}_{\mathtt{R}} \\ \bm{\beta}_{\mathtt{R}}\end{array}\right],\bm{\Sigma}\right)
+  \left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
+   \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right)
   $$
 - $\delta_\ell$ are alternative-specific fixed effects
 - $\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)$ are idiosyncratic i.i.d. shocks
