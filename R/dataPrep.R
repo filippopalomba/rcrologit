@@ -29,7 +29,7 @@
 #' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
 #' \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right) }}
 #' \item{\eqn{\delta_\ell}}{ are alternative-specific fixed effects}
-#' \item{\eqn{\epsilon_{i\ell}\sim\mathrm{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
+#' \item{\eqn{\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
 #' }
 #' The parameter vector to be estimated is thus
 #' \deqn{\theta = \left(\right)^\top}
