@@ -7,7 +7,7 @@
 [![](https://img.shields.io/badge/devel%20version-0.0.1-blue.svg)](https://github.com/filippopalomba/rcrologit)
 [![R build
 status](https://github.com/filippopalomba/rcrologit/workflows/R-CMD-check/badge.svg)](https://github.com/filippopalomba/rcrologit/actions)
-[![](https://img.shields.io/github/last-commit/filippopalomba/rcrologit.svg)](https://github.com/filippopalomba/rcrologit/commits/master)
+[![](https://img.shields.io/github/last-commit/filippopalomba/rcrologit.svg)](https://github.com/filippopalomba/rcrologit)
 
 <!-- badges: end -->
 
@@ -27,8 +27,8 @@ $$
 In its most general form, we allow the user to model $u_{i\ell}$ as
 
 $$
-u_{i\ell}=X_{i\ell}^\top\bm{\beta}_{\mathtt{F}} + Z_i^\top\bm{\alpha}_{\mathtt{F}} + 
- W_{i\ell}^\top\bm{\beta}_i + V_i^\top\bm{\alpha}_i + \delta_\ell
+u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\mathtt{F}} + 
+ W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_i + \delta_\ell
 $$
 
 where:
