@@ -32,7 +32,9 @@
 #' \item{\eqn{\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
 #' }
 #' The parameter vector to be estimated is thus
-#' \deqn{\theta = \left(\right)^\top}
+#' \deqn{\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,
+#' \boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top,
+#' \mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=-}^J\right)^\top.}
 #' 
 #' @return 
 #' The function returns a list containing the following objects:
