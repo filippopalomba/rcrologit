@@ -16,7 +16,7 @@ preferences.
 
 ## Setup
 
-We have $n$ i.i.d. random draws $\mathcal{D}_n=\{Y_i,C_i\}_{i=1}^n,$ where $Y_i := (Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top \in\{0,1\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
+We have $n$ i.i.d. random draws $\mathcal{D}_n=\{Y_i,C_i\}_{i=1}^{n},$ where $Y_i := (Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top \in\{0,1\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
 
 $$
 U_{ij}^\star = u_{ij} + \epsilon_{ij},\qquad \epsilon_{ij}\overset{\mathtt{iid}}{\sim}\mathsf{Gu}(0,1).
@@ -70,7 +70,7 @@ $$
 If instead agents are allowed to have heterogeneous taste, then
 
 $$
-\mathbb{P}[r_i\mid \mathcal{D}] = \int \prod_{j=0}^{J-1} \frac{\exp \left(u_{ir_i(j)}^\top(\beta_i)\right)}{\sum_{\ell=j}^J \exp \left(u_{ir_i(\ell)}^\top(\beta_i)\right)} \phi(\beta_i;\beta,\Sigma) \mathrm{d} \beta_i.
+\mathbb{P}[r_i\mid \mathcal{D}] = \int \prod_{j=0}^{J-1} \frac{\exp \left(u_{ir_i(j)}^\top(\beta_i)\right)}{\sum_{\ell=j}^{J} \exp \left(u_{ir_i(\ell)}^\top(\beta_i)\right)} \phi(\beta_i;\beta,\Sigma) \mathrm{d} \beta_i.
 $$
 
 The parameter vector to be estimated is thus
