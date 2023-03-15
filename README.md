@@ -20,10 +20,10 @@ preferences.
 The package estimates random coefficient rank-ordered logit models
 induced by the latent utility model (McFadden, 1974) of the form
 $$U_{i\ell} = u_{i\ell} + \epsilon_{i\ell},\quad i=1,2,\ldots,n,\quad j=0,1,\ldots,J.$$
-In its most general form, we allow the user to model $u_{i\ell}$ as
-$$u_{i\ell}=X_{i\ell}^\top\bm{\beta}_{\mathtt{F}} + Z_i^\top\bm{\alpha}_{\mathtt{F}} + 
- W_{i\ell}^\top\bm{\beta}_i + V_i^\top\bm{\alpha}_i + \delta_\ell$$
-where:
+In its most general form, we allow the user to model
+$u_{i\ell\mathtt{F}}$ as
+$$u_{i\ell}=X_{i\ell}^\top\beta_{\mathtt{F}} + Z_i^\top\alpha_{\mathtt{F}} + 
+ W_{i\ell}^\top\beta_i + V_i^\top\alpha_i + \delta_\ell$$ where:
 
 - $X_{i\ell}$ are covariates varying at the unit-alternative level whose
   coefficients are modelled as fixed
