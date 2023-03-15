@@ -87,7 +87,7 @@ $$
 The ideal maximum likelihood estimator is defined as
 
 $$
-\widehat{\theta}_{\mathtt{ML}}:=\argmax_{\theta} \sum_{i=1}^n\log\int \prod_{j=0}^{J-1} \frac{\exp \left(u_{ir_i(j)}(\theta)\right)}{\sum_{\ell=j}^J \exp \left(u_{ir_i(\ell)}(\theta)\right)} \phi(\beta_i;\beta_{\mathtt{R}},\Sigma) \mathrm{d} \beta_i.
+\widehat{\theta}_{\mathtt{ML}}:=\mathrm{arg}\max_{\theta} \sum_{i=1}^n\log\int \prod_{j=0}^{J-1} \frac{\exp \left(u_{ir_i(j)}(\theta)\right)}{\sum_{\ell=j}^J \exp \left(u_{ir_i(\ell)}(\theta)\right)} \phi(\beta_i;\beta_{\mathtt{R}},\Sigma) \mathrm{d} \beta_i.
 $$
 
 We approximate the integral via montecarlo as
