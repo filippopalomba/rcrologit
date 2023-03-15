@@ -42,8 +42,8 @@ where:
   are modelled as random the random coefficients are modeled as a joint
   multivariate normal and are i.i.d. across units,
   $$
-  \left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
-   \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right)
+  \left[\begin{pmatrix}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{pmatrix}\right]\sim
+   \mathsf{N}\left(\left[\begin{pmatrix}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{pmatrix}\right],\boldsymbol{\Sigma}\right)
   $$
 - $\delta_\ell$ are alternative-specific fixed effects
 - $\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)$ are idiosyncratic i.i.d. shocks
