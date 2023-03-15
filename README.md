@@ -56,10 +56,10 @@ where:
 - $X_{i\ell}$ are covariates varying at the unit-alternative level whose coefficients are modelled as fixed
 - $Z_{i}$ are covariates varying at the unit level whose coefficients are modelled as fixed
 - $W_{i\ell}$ are covariates varying at the unit-alternative level whose coefficients are modelled as random
-- $V_{i}$ are covariates varying at the unit level whose coefficients are modelled as random the random coefficients are modeled as a joint multivariate normal and are i.i.d. across units
+- $V_{i}$ are covariates varying at the unit level whose coefficients are modelled as random the random coefficients
+- The heterogeneous taste coefficients are modeled as a joint multivariate normal and are i.i.d. across units
   $$
-  \left(\boldsymbol{\alpha}_i^\top, \boldsymbol{\beta}_i^\top\right)^\top \sim
-   \mathsf{N}\left(\left(\boldsymbol{\alpha}_{\mathtt{R}}^\top, \boldsymbol{\beta}_{\mathtt{R}}^\top\right)^\top,\boldsymbol{\Sigma}\right)
+  \left(\boldsymbol{\alpha}_i^\top, \boldsymbol{\beta}_i^\top\right)^\top 
   $$
 - $\delta_\ell$ are alternative-specific fixed effects
 - $\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)$ are idiosyncratic i.i.d. shocks
