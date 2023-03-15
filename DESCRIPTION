@@ -1,0 +1,30 @@
+Package: rcrologit
+Title: Random Coefficients Rank-Ordered Logit
+Version: 0.0.1
+Authors@R: 
+    c(person(given="Filippo",
+             family="Palomba",
+             email="fpalomba@princeton.edu", 
+             role = c("aut", "cre"),
+             comment = c(ORCID = "0000-0002-6400-3142")),
+      person(given="Chiara",
+             family="Motta",
+             email="cmotta@berkeley.edu", 
+             role = c("aut"))
+             )
+Description: Estimation and inference procedures for random coefficients rank-ordered logit.
+Depends: R (>= 4.1.0)
+Imports: fastDummies (>= 1.6.3), MASS (>= 7.3), methods (>= 4.2.1),
+        numDeriv (>= 2016.8), rlang (>= 1.1.0)
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+URL: https://github.com/filippopalomba/rcrologit
+BugReports: https://github.com/filippopalomba/rcrologit/issues
+NeedsCompilation: no
+LazyData: true
+Packaged: 2023-03-15 06:11:21 UTC; fpalomba
+Author: Filippo Palomba [aut, cre] (<https://orcid.org/0000-0002-6400-3142>),
+  Chiara Motta [aut]
+Maintainer: Filippo Palomba <fpalomba@princeton.edu>
