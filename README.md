@@ -16,7 +16,7 @@ preferences.
 
 ## Setup
 
-We have $n$ i.i.d. random draws $\mathcal{D}_n=\{Y_i,C_i\}_{i=1}^{n},$ where $Y_i := (Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top \in\{0,1\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
+We have $n$ i.i.d. random draws $\mathcal{D}_{n}=\{Y_{i},C_{i}\}_{i=1}^{n},$ where $Y_i := (Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top \in\{0,1\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
 
 $$
 U_{ij}^\star = u_{ij} + \epsilon_{ij},\qquad \epsilon_{ij}\overset{\mathtt{iid}}{\sim}\mathsf{Gu}(0,1).
@@ -37,7 +37,7 @@ $$
 Therefore, the probability of observing a particular ranking $r_i$ is given by
 
 $$
-\mathbb{P}\left[r_i\mid \mathcal{D}\right]  =\mathbb{P}\left[U_{ir_i(0)}^\star> U_{ir_i(1)}^\star>\cdots> U_{ir_i(J)}^\star\mid \mathcal{D}\right]  =\prod_{j=0}^{J-1} \frac{\exp \left(u_{i r_{i}(j)}\right)}{\sum_{\ell=j}^J \exp \left(u_{i r_{i}(\ell)}\right)}.
+\mathbb{P}\left[r_i\mid \mathcal{D}\right]  =\mathbb{P}\left[U_{ir_i(0)}^\star> U_{ir_i(1)}^\star>\cdots> U_{ir_i(J)}^\star\mid \mathcal{D}\right]  =\prod_{j=0}^{J-1} \frac{\exp \left(u_{i r_{i}(j)}\right)}{\sum_{\ell=j}^{J} \exp \left(u_{i r_{i}(\ell)}\right)}.
 $$
 
 In light of this, we can see that the rank-ordered logit is nothing else than a series of multinomial logit (MNL) models: when $j=0$ we considered a MNL the most preferred item; another MNL for the second-ranked item to be preferred over all items except the one with rank 1, and so on. Finally, the probability of a complete ranking is made up of the product of these separate MNL probabilities. The product contains only $J$ probabilities, because ranking the least preferred item is done with probability 1.
@@ -61,10 +61,10 @@ where:
 - $\delta_\ell$ are alternative-specific fixed effects
 - $\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)$ are idiosyncratic i.i.d. shocks
 
-Note that whenever $W_{i\ell}$ and $V_i$ are not specified estimates a standard rank-ordered logit with no heterogeneous preferences and the conditional choice probabilities are given by 
+Note that whenever $W_{i\ell}$ and $V_i$ are not specified estimates a standard rank-ordered logit with no heterogeneous preferences and the conditional choice probabilities are given by
 
 $$
-\mathbb{P}\left[r_i\mid \mathcal{D}\right]  =\prod_{j=0}^{J-1} \frac{\exp \left(u_{i r_{i}(j)}\right)}{\sum_{\ell=j}^J \exp \left(u_{i r_{i}(\ell)}\right)}.
+\mathbb{P}\left[r_i\mid \mathcal{D}\right]  =\prod_{j=0}^{J-1} \frac{\exp \left(u_{i r_{i}(j)}\right)}{\sum\limits_{j\leq\ell=J} \exp \left(u_{i r_{i}(\ell)}\right)}.
 $$
 
 If instead agents are allowed to have heterogeneous taste, then
@@ -117,7 +117,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.fix = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-                    
+                  
 rologitEst <- rcrologit(dataprep)
 
 # Rank-ordered logit
@@ -125,6 +125,6 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.het = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-                    
+                  
 rologitEst <- rcrologit(dataprep, stdErr="skip")
 ```
