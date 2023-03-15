@@ -16,7 +16,7 @@ preferences.
 
 ## Setup
 
-We have $n$ i.i.d. random draws of the data $\{Y_i,X_i\}_{i=1}^n,$ where $Y_i := (Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top \in\{0,1\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
+We have $n$ i.i.d. random draws $\mathcal{D}:=\{Y_i,X_i\}_{i-1}^{n}$ where $Y_i:=(Y_{i0},Y_{i1},\ldots,Y_{iJ})^\top\in\{0,1,\ldots,J\}^{J+1}$ is a vector of ranks  and $C_i:=(X_{i0}, C_{i1},\ldots, C_{iJ})^\top \in \mathbb{R}^{(J+1)\cdot K}, C_{i\ell} \in\mathbb{R}^K$. Let the latent utility model (McFadden, 1974) be
 
 $$
 U_{ij}^\star = u_{ij} + \epsilon_{ij},\qquad \epsilon_{ij}\overset{\mathtt{iid}}{\sim}\mathsf{Gu}(0,1).
