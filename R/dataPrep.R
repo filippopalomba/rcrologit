@@ -14,7 +14,7 @@
 #' @param covsInt.het covariates varying at the worker level with random taste parameter
 #'
 #' @details
-#' The code estimates the random coefficient rank-ordered logit model induced by the latent utility model (McFadden, 1974)
+#' The function prepares the data to estimate a random coefficient rank-ordered logit model induced by the latent utility model (McFadden, 1974)
 #' \deqn{U_{i\ell} = u_{i\ell} + \epsilon_{i\ell},\quad i=1,2,\ldots,n,\quad j=0,1,\ldots,J.}
 #' In its most general form, we model \eqn{u_{i\ell}} as
 #' \deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\mathtt{F}} + 
