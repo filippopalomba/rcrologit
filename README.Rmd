@@ -12,10 +12,11 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-
+`r badge_dependencies("badger")`
 # rcrologit
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/filippopalomba/rcrologit/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/filippopalomba/rcrologit/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of rcrologit is to ...
