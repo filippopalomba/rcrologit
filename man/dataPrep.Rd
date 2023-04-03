@@ -30,13 +30,13 @@ fashion.}
 
 \item{FE}{a string containing the name of the fixed effect variable (if required by the user)}
 
-\item{covs.fix}{covariates varying at the alternative-worker level with fixed taste parameter}
+\item{covs.fix}{covariates varying at the alternative-unit level with fixed taste parameter}
 
-\item{covs.het}{covariates varying at the alternative-worker level with random taste parameter}
+\item{covs.het}{covariates varying at the alternative-unit level with random taste parameter}
 
-\item{covsInt.fix}{covariates varying at the worker level with fixed taste parameter}
+\item{covsInt.fix}{covariates varying at the unit level with fixed taste parameter}
 
-\item{covsInt.het}{covariates varying at the worker level with random taste parameter}
+\item{covsInt.het}{covariates varying at the unit level with random taste parameter}
 }
 \value{
 The function returns a list containing the following objects:
@@ -53,8 +53,9 @@ originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rc
 \insertCite{luce1959IndividualChoiceBehavior;textual}{rcrologit}-\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit} model.
 
 These models automatically implies independence of irrelevant alternatives \insertCite{debreu1960ReviewRDLuce}{rcrologit}. However,
-\insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes (i.e., random coefficients), then the conditional
-probability choices induced by the latent utility model can match those implied by virtually any
+\insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes
+(i.e., random coefficients),
+then the conditional probability choices induced by the latent utility model can match those implied by virtually any
 discrete choice probability model.
 
 The package \code{\link{rcrologit}}, depending on the type of covariates specified in \code{dataPrep},
@@ -69,31 +70,38 @@ at least one of \code{covs.het} or \code{covsInt.het} are specified.}
 For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 }
 \details{
-The function prepares the data to estimate a random coefficient rank-ordered logit model induced by the latent utility model (McFadden, 1974)
+The function prepares the data to estimate a random coefficient rank-ordered logit model induced by the latent utility model
+\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit}
 \deqn{U_{i\ell} = u_{i\ell} + \epsilon_{i\ell},\quad i=1,2,\ldots,n,\quad j=0,1,\ldots,J.}
 In its most general form, we model \eqn{u_{i\ell}} as
-\deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} + 
+\deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} +
 W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell}
 where
 \itemize{
 \item{\eqn{X_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as fixed.
 The user can specify these covariates via the option \code{covs.fix}.}
 \item{\eqn{Z_{i}} are covariates varying at the unit level whose coefficients are modelled as fixed.
-The user can specify these covariates via the option \code{covsInt.fix}.}
+The user can specify these covariates via the option \code{covsInt.fix}. These coefficients are interacted with
+a dummy for the choice and treated as alternative varying covariates,
+i.e., \eqn{Z_{i\ell}=\sum_{j=1}^JZ_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
 \item{\eqn{W_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as random.
 The user can specify these covariates via the option \code{covs.het}.}
 \item{\eqn{V_{i}} are covariates varying at the unit level whose coefficients are modelled as random.
-The user can specify these covariates via the option \code{covsInt.het}.}
+The user can specify these covariates via the option \code{covsInt.het}. These coefficients are interacted with
+a dummy for the choice and treated as alternative varying covariates,
+i.e., \eqn{V_{i\ell}=\sum_{j=1}^JV_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
 \item{the random coefficients}{ are modeled as a joint multivariate normal and are i.i.d. across units,
 \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
-\mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right) }}
+\mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\
+\boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right) }}
 \item{\eqn{\delta_\ell}}{ are alternative-specific fixed effects that can be specified via the option \code{FE}.}
 \item{\eqn{\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
 }
 The parameter vector to be estimated is thus
 \deqn{\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,
 \boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top,
-\mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=0}^J\right)^\top.}
+\mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=1}^J\right)^\top,}
+where the first alternative-fixed effect has been normalized to 0.
 
 For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 }
@@ -103,7 +111,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                      altVar = "alternative",
                      covsInt.fix = list("Gender"),
                      covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-                     
+
 rologitEst <- rcrologit(dataprep)
 
 }

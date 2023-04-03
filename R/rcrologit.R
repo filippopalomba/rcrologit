@@ -1,21 +1,21 @@
 #' @title Estimation and Inference for Random Coefficients Rank-Ordered Logit
 #'
-#' @description This function takes the object prepared by \code{dataPrep} and estimates a 
+#' @description This function takes the object prepared by \code{dataPrep} and estimates a
 #' random coefficient rank-ordered logit. The rank-ordered logit - sometimes termed \emph{exploded logit model} - was
-#' originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rcrologit} and it is an extension of the 
+#' originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rcrologit} and it is an extension of the
 #' \insertCite{luce1959IndividualChoiceBehavior;textual}{rcrologit}-\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit} model. 
 #'
 #' These models automatically implies independence of irrelevant alternatives \insertCite{debreu1960ReviewRDLuce}{rcrologit}. However, 
-#' \insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes (i.e., random coefficients), then the conditional
-#' probability choices induced by the latent utility model can match those implied by virtually any
-#' discrete choice probability model.
+#' \insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous
+#' tastes (i.e., random coefficients), then the conditional probability choices induced by the latent utility model can
+#' match those implied by virtually any discrete choice probability model.
 #'
 #' The package \code{\link{rcrologit}}, depending on the type of covariates specified in \code{dataPrep},
 #' allows the user to estimate:
 #' \itemize{
 #' \item{the standard rank-ordered logit model if either \code{covs.fix} or \code{covsInt.fix} are specified.}
 #' \item{the random coefficients rank-ordered logit model if either \code{covs.het} or \code{covsInt.het} are specified.}
-#' \item{the mixed random coefficients rank-ordered logit model if at least one of \code{covs.fix} or \code{covsInt.fix} and 
+#' \item{the mixed random coefficients rank-ordered logit model if at least one of \code{covs.fix} or \code{covsInt.fix} and
 #' at least one of \code{covs.het} or \code{covsInt.het} are specified.}
 #' }
 #'
@@ -27,20 +27,19 @@
 #' "diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.
 #' @param S integer denoting the number of simulations when approximating the integrals in the conditional
 #' choice probabilities. Default is \code{S=50}.
-#' @param approx.method string indicating the procedure to approximate the integrals in the conditional 
+#' @param approx.method string indicating the procedure to approximate the integrals in the conditional
 #' choice probabilities
 #' @param stdErr string denoting whether standard error should be estimated and how. Available options are
 #' "numerical" (default) which uses numerical approximation of the Hessian matrix; "analytical" which uses
 #' the closed form of the variance of the score and the hessian of the likelihood to estimate standard
 #' errors robust to misspecification; "skip" which makes R skip the computation of standard errors
-#' @param verbose if \code{TRUE} prints additional information in the console. 
+#' @param verbose if \code{TRUE} prints additional information in the console.
 #' @param control.opts a list containing options to be passed to the underlying optimizer
 #' \code{optim}.
-#' 
-#' @details 
-#' 
+#'
+#' @details
 #' \itemize{
-#' \item{\strong{Variance-Covariance of random parameters.} The option \code{Sigma} allows the user to 
+#' \item{\strong{Variance-Covariance of random parameters.} The option \code{Sigma} allows the user to
 #' model directly the covariance structure of the random coefficients. Precisely, it shape \eqn{\boldsymbol{\Sigma}} in
 #' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
 #' \mathsf{N}\left(\left[\begin{array}{c}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],
@@ -48,13 +47,48 @@
 #' In practice, to avoid issues with the positive-definiteness of \eqn{\boldsymbol{\Sigma}} during the optimization routine,
 #' it is more convenient to model the random coefficients as
 #' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]=
-#' \left[\begin{array}{c}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right] + \Lambda u_i,
-#' \quad u_i\sim\mathsf{N}(0,\boldsymbol{I}).}
+#' \left[\begin{array}{c}\boldsymbol{\alpha}_{\mathtt{R}} \\ \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right] + \Lambda \mathbf{u}_i,
+#' \quad \mathbf{u}_i\sim\mathsf{N}(0,\boldsymbol{I}).}
 #' The option \code{Sigma} directly models the shape of \eqn{\Lambda} and allows the user to choose between a diagonal structure
 #' (\code{Sigma="diagonal"}) and a lower-triangular structure (\code{Sigma="cholesky"}).
 #' }
+#' \item{\strong{Model.}
+#' The function estimates a random coefficient rank-ordered logit model induced by the latent utility model
+#' \insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit}
+#' \deqn{U_{i\ell} = u_{i\ell} + \epsilon_{i\ell},\quad i=1,2,\ldots,n,\quad j=0,1,\ldots,J.}
+#' In its most general form, we model \eqn{u_{i\ell}} as
+#' \deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} +
+#' W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell}
+#' where
+#' \itemize{
+#' \item{\eqn{X_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as fixed.
+#' The user can specify these covariates via the option \code{covs.fix}.}
+#' \item{\eqn{Z_{i}} are covariates varying at the unit level whose coefficients are modelled as fixed.
+#' The user can specify these covariates via the option \code{covsInt.fix}. These coefficients are interacted with
+#' a dummy for the choice and treated as alternative varying covariates,
+#' i.e., \eqn{Z_{i\ell}=\sum_{j=1}^JZ_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
+#' \item{\eqn{W_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as random.
+#' The user can specify these covariates via the option \code{covs.het}.}
+#' \item{\eqn{V_{i}} are covariates varying at the unit level whose coefficients are modelled as random.
+#' The user can specify these covariates via the option \code{covsInt.het}. These coefficients are interacted with
+#' a dummy for the choice and treated as alternative varying covariates,
+#' i.e., \eqn{V_{i\ell}=\sum_{j=1}^JV_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
+#' \item{the random coefficients}{ are modeled as a joint multivariate normal and are i.i.d. across units,
+#' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
+#' \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\
+#' \boldsymbol{\beta}_{\mathtt{R}}\end{array}\right],\boldsymbol{\Sigma}\right) }}
+#' \item{\eqn{\delta_\ell}}{ are alternative-specific fixed effects that can be specified via the option \code{FE}.}
+#' \item{\eqn{\epsilon_{i\ell}\sim\mathsf{Gu}(0,1)}}{are idiosyncratic i.i.d. shocks.}
 #' }
-#' 
+#' The parameter vector to be estimated is thus
+#' \deqn{\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,
+#' \boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top,
+#' \mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=1}^J\right)^\top,}
+#' where the first alternative-fixed effect has been normalized to 0.}
+#' }
+#'
+#' For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
+#'
 #' @return
 #' The function returns a list containing the following objects:
 #' \item{b}{vector containing all the estimated parameters}
@@ -62,10 +96,10 @@
 #' \item{bhet}{vector containing the estimated parameters corresponding to the "random" coefficients}
 #' \item{Lambda}{loading matrix of the shocks to the random coefficients}
 #' \item{Sigma}{variance-covariance matrix of the estimated parameters}
-#' 
-#' @author 
+#'
+#' @author
 #' Chiara Motta, University of California Berkeley. \email{cmotta@berkeley.edu}
-#' 
+#'
 #' Filippo Palomba, Princeton University. \email{fpalomba@princeton.edu}
 #' 
 #' @examples
@@ -74,45 +108,43 @@
 #'                      altVar = "alternative",
 #'                      covsInt.fix = list("Gender"),
 #'                      covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-#'                      
+#'
 #' rologitEst <- rcrologit(dataprep)
 #' 
 #' @seealso \code{\link{dataPrep}}
-#' 
+#'
 #' @references
 #'  \insertAllCited{}
-#'  
+#'
 #' @export
 
- 
-rcrologit <- function(dataPrep, Sigma="diagonal", S=50, approx.method="MC",
-                       stdErr="numerical", verbose=FALSE, control.opts=NULL) {
+rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC",
+                       stdErr = "numerical", verbose = FALSE, control.opts = NULL) {
 
   ################################################################################
   ## error checking
-  if (methods::is(dataPrep, "dataRologit") == FALSE ) {
+  if (methods::is(dataPrep, "dataRologit") == FALSE) {
     stop("dataPrep should be the object returned by running dataPrep!")
   }
-  
+
   if (!(Sigma %in% c("diagonal", "cholesky"))) {
     stop("The option 'Ltype' must be either 'diagonal' or 'cholesky'!")
   }
-  
+
   if (!(approx.method %in% c("MC"))) stop("The option 'approx.method' must be either 'MC' or XXX")
-  
+
   if (!(stdErr %in% c("skip", "analytical", "numerical"))) {
     stop("'stdErr' must be either 'skip', 'analytical', or 'numerical'!")
   }
-  
-  
+
   ################################################################################
   ## prepare list of matrices (X_1, X_2, ..., X_J)
-  
+
   if (dataPrep$param.spec$K.het > 0) {
     rCoefs <- TRUE
     K.het.mu <- dataPrep$param.spec$K.het          # number of parameters following normal distribution (mean)
-    if (Sigma=="diagonal") K.het.lam <- K.het.mu   # number of parameters in loading matrix 
-    if (Sigma=="cholesky") K.het.lam <- K.het.mu*(K.het.mu+1)/2              
+    if (Sigma == "diagonal") K.het.lam <- K.het.mu   # number of parameters in loading matrix
+    if (Sigma == "cholesky") K.het.lam <- K.het.mu * (K.het.mu + 1) / 2
   } else {
     rCoefs <- FALSE
     K.het.mu <- K.het.lam <- 0
@@ -120,7 +152,7 @@ rcrologit <- function(dataPrep, Sigma="diagonal", S=50, approx.method="MC",
 
   K.fix <- dataPrep$param.spec$K.fix  # number of fixed taste parameters to be estimated
   J <- dataPrep$param.spec$J          # total number of alternatives
-  
+
   df <- data.frame("Worker.ID"=dataPrep$id,
                    "rank"=dataPrep$rank,
                    dataPrep$X.fix,

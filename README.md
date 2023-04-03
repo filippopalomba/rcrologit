@@ -16,7 +16,7 @@ preferences.
 
 ## Setup
 
-We have $n$ i.i.d. random draws 
+We have $n$ i.i.d. random draws
 
 $$
 \mathcal{D}:=(Y_i,X_i)_{i=1}^{n}
@@ -53,8 +53,15 @@ In light of this, we can see that the rank-ordered logit is nothing else than a 
 In its most general form, we allow the user to model $u_{i\ell}$ in the latent utility model as
 
 $$
-u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\mathtt{F}} + 
- W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_i + \delta_\ell
+u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} + 
+ W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell,
+$$
+
+An alternative, handier way to rewrite the model above it to define $Z_{i\ell}:=\sum_{j=1}^JZ_i\times\mathbf{1}(j=\ell)$ and $ V_{i\ell}:=\sum_{j=1}^JV_i\times\mathbf{1}(j=\ell)$ and consider the model
+
+$$
+u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_{i\ell}^\top\boldsymbol{\alpha}_{\mathtt{F}} + 
+ W_{i\ell}^\top\boldsymbol{\beta}_i + V_{i\ell}^\top\boldsymbol{\alpha}_{i} + \delta_\ell,
 $$
 
 where:
@@ -82,7 +89,7 @@ $$
 The parameter vector to be estimated is thus
 
 $$
-\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,\boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top, \mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=0}^J\right)^\top.
+\theta = \left(\boldsymbol{\beta_\mathtt{F}}^\top,\boldsymbol{\beta_\mathtt{R}}^\top,\boldsymbol{\alpha_\mathtt{F}}^\top,\boldsymbol{\alpha_\mathtt{R}}^\top, \mathrm{vech}(\boldsymbol{\Sigma})^\top,\{\delta\}_{j=1}^J\right)^\top.
 $$
 
 ## Estimation
@@ -123,7 +130,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.fix = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-                  
+              
 rologitEst <- rcrologit(dataprep)
 
 # Rank-ordered logit
@@ -131,6 +138,6 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.het = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-                  
+              
 rologitEst <- rcrologit(dataprep, stdErr="skip")
 ```
