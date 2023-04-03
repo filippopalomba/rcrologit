@@ -72,8 +72,8 @@ For more information on the underlying specification see the \href{https://githu
 The function prepares the data to estimate a random coefficient rank-ordered logit model induced by the latent utility model (McFadden, 1974)
 \deqn{U_{i\ell} = u_{i\ell} + \epsilon_{i\ell},\quad i=1,2,\ldots,n,\quad j=0,1,\ldots,J.}
 In its most general form, we model \eqn{u_{i\ell}} as
-\deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\mathtt{F}} + 
-W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_i + \delta_\ell}
+\deqn{u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} + 
+W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell}
 where
 \itemize{
 \item{\eqn{X_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as fixed.

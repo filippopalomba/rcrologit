@@ -4,21 +4,21 @@
 #' random coefficient rank-ordered logit. The rank-ordered logit - sometimes termed \emph{exploded logit model} - was
 #' originally proposed in \insertCite{beggs1981AssessingPotentialDemand;textual}{rcrologit} and it is an extension of the 
 #' \insertCite{luce1959IndividualChoiceBehavior;textual}{rcrologit}-\insertCite{mcfadden1974FrontiersEconometrics;textual}{rcrologit} model. 
-#' 
+#'
 #' These models automatically implies independence of irrelevant alternatives \insertCite{debreu1960ReviewRDLuce}{rcrologit}. However, 
 #' \insertCite{mcfadden2000MixedMNLModels;textual}{rcrologit} show that if agents are allowed to have heterogeneous tastes (i.e., random coefficients), then the conditional
 #' probability choices induced by the latent utility model can match those implied by virtually any
-#' discrete choice probability model. 
-#' 
+#' discrete choice probability model.
+#'
 #' The package \code{\link{rcrologit}}, depending on the type of covariates specified in \code{dataPrep},
 #' allows the user to estimate:
 #' \itemize{
 #' \item{the standard rank-ordered logit model if either \code{covs.fix} or \code{covsInt.fix} are specified.}
 #' \item{the random coefficients rank-ordered logit model if either \code{covs.het} or \code{covsInt.het} are specified.}
 #' \item{the mixed random coefficients rank-ordered logit model if at least one of \code{covs.fix} or \code{covsInt.fix} and 
-#' at least one of \code{covs.het} or \code{covsInt.het} are specified.} 
+#' at least one of \code{covs.het} or \code{covsInt.het} are specified.}
 #' }
-#' 
+#'
 #' For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 #'
 #'
