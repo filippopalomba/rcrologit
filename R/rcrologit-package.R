@@ -11,6 +11,7 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom methods is
 #' @importFrom numDeriv hessian
+#' @importFrom purrr map
 #' @importFrom Rdpack reprompt
 #' 
 #' @rawNamespace import(stats, except = c(lag, filter, power))

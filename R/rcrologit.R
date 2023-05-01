@@ -96,12 +96,13 @@
 #' \item{bhet}{vector containing the estimated parameters corresponding to the "random" coefficients}
 #' \item{Lambda}{loading matrix of the shocks to the random coefficients}
 #' \item{Sigma}{variance-covariance matrix of the estimated parameters}
+#' \item{param.spec}{a list containing some parameters describing the specification chosen by the user}
 #'
 #' @author
 #' Chiara Motta, University of California Berkeley. \email{cmotta@berkeley.edu}
 #'
 #' Filippo Palomba, Princeton University. \email{fpalomba@princeton.edu}
-#' 
+#'
 #' @examples
 #' data <- rcrologit_data
 #' dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
@@ -110,7 +111,7 @@
 #'                      covs.fix = list("log_Wage"), FE = c("Firm_ID"))
 #'
 #' rologitEst <- rcrologit(dataprep)
-#' 
+#'
 #' @seealso \code{\link{dataPrep}}
 #'
 #' @references
@@ -139,14 +140,12 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
 
   ################################################################################
   ## prepare list of matrices (X_1, X_2, ..., X_J)
-
-  if (dataPrep$param.spec$K.het > 0) {
-    rCoefs <- TRUE
+  rCoefs <- dataPrep$param.spec$model == "rcoef_rologit"
+  if (rCoefs == TRUE) {
     K.het.mu <- dataPrep$param.spec$K.het          # number of parameters following normal distribution (mean)
     if (Sigma == "diagonal") K.het.lam <- K.het.mu   # number of parameters in loading matrix
     if (Sigma == "cholesky") K.het.lam <- K.het.mu * (K.het.mu + 1) / 2
   } else {
-    rCoefs <- FALSE
     K.het.mu <- K.het.lam <- 0
   }
 
@@ -177,41 +176,41 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
   if (verbose) {
     cat("--------------------------------------------------------------------\n")
   }
-  
+
   if (rCoefs == TRUE) { # random coefficients rank-ordered logit
     cat("Random Coefficients Rank-Ordered Logit \n")
     cat("Optimizing Likelihood function...\n")
-    
+
     b0 <- rep(1, K.fix + K.het.mu + K.het.lam)     # order is going to be (beta.fix, beta.het, Sigma)
-    
+
     if (approx.method == "MC") {     # draw shocks once and for all to approximate integrals
       epsMC <- MASS::mvrnorm(n=S, mu=rep(0, K.het.mu), Sigma=diag(K.het.mu))
     }
-    
+
     #init <- Sys.time()
     bhat <- stats::optim(par=b0, fn=loglkldRC, X=Xlist, J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
                          Sigma=Sigma, approx.method="MC", S=S, epsMC=epsMC, method = "BFGS",
                          control=control.opts)
-  
+
     ##########################################################
     # prepare output
-    
-    b <- bhat$par
-    
+
+    b <- as.matrix(bhat$par)
+
     # unpack b to store results
-    k1 <- K.fix                            
+    k1 <- K.fix
     k2 <- K.fix + 1
     k3 <- k1 + K.het.mu
     k4 <- k3 + 1
     k5 <- k3 + K.het.lam
-    bfix <- b[1:k1]                                 # first sub-component is b for fixed taste covs (including FE)
-    bhet <- b[k2:k3]                                # second: mean het taste 
-    bLam <- vec2mat(b[k4:k5], K.het.mu, Sigma)      # third: varcov of shocks het taste 
-    bLam <- abs(bLam)                               # loadings are identified up to a sign
-   
+    bfix <- b[1:k1, drop=FALSE]                                 # first sub-component is b for fixed taste covs (including FE)
+    bhet <- b[k2:k3, drop=FALSE]                                # second: mean het taste
+    bLam <- vech2mat(b[k4:k5, drop=FALSE], K.het.mu, Sigma)      # third: varcov of shocks het taste
+    bLam <- abs(bLam)                                           # loadings are identified up to a sign
+
     names(bfix) <- colnames(dataPrep$X.fix)
     names(bhet) <- colnames(dataPrep$X.het)
-    rownames(bLam) <- colnames(bLam) <- paste0("Lambda.", names(bhet))  
+    rownames(bLam) <- colnames(bLam) <- paste0("Lambda.", names(bhet))
 
   } else {  # rank-ordered logit
     cat("Rank-Ordered Logit \n")
@@ -234,29 +233,24 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
   
   if (verbose==TRUE) cat("Computing standard errors...\n\n")
   
-  if (stdErr == "numerical") {  # numerical approximation
+  if (stdErr == "numerical" & rCoefs == FALSE) {  # numerical approximation
     
     se <- seGet(Xlist, b, rCoefs, NumApprox=TRUE, pars=NULL)
     SigmaHat <- se$Sigma
 
-  } else if (stdErr == "analytical") { # analytical SEs
+  } else if (stdErr == "analytical"  & rCoefs == FALSE) { # analytical SEs
     se <- seGet(dataPrep, b, rCoefs, NumApprox=FALSE)
     SigmaHat <- se$SigmaRob
-    
+
   } else {
-    SigmaHat <- NULL
+    SigmaHat <- matrix(NA, nrow(b), nrow(b))
 
   }
   
-  if (verbose==TRUE && stdErr!="skip") {
-    bhat <- b
-    sebhat <- sqrt(diag(SigmaHat))
-    lb <- bhat - qnorm(0.975) * sebhat
-    ub <- bhat + qnorm(0.975) * sebhat
-    aux <- cbind(bhat, sebhat, lb, ub)
-    colnames(aux) <- c("Estimate", "Std.Error", "Lb (95%)", "Ub (95%)")
-    print(round(aux, digits = 2))
-  }
-
-  return(list(b=b, bfix=bfix, bhet=bhet, Lambda=bLam, Sigma=SigmaHat))
+  to_return <- list(b = b, bfix = bfix, bhet = bhet,
+                    Lambda = bLam, Sigma = SigmaHat, param.spec = dataPrep$param.spec)
+  to_return$param.spec$K.het.lam <- K.het.lam
+  to_return$param.spec$Sigma <- Sigma
+  class(to_return) <- "rcrologit"
+  return(to_return)
 }

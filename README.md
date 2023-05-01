@@ -57,7 +57,7 @@ u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\a
  W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell,
 $$
 
-An alternative, handier way to rewrite the model above is to define $Z_{i\ell}:=\sum\limits_{j=1}^JZ_i\times\mathbf{1}(j=\ell)$ and $V_{i\ell}:=\sum\limits_{j=1}^JV_i\times\mathbf{1}(j=\ell),\ell=1,2,\ldots,J$ and consider the equivalent model
+An alternative, handier way to rewrite the model above is to define $Z_{i\ell}:=\sum\limits_{j=1}^JZ_i\times\mathbf{1}(j=\ell)$ and $V_{i\ell}:=\sum\limits_{j=1}^JV_i\times\mathbf{1}(j=\ell),\ell=1,2,\ldots,J$, and consider the equivalent model
 
 $$
 u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_{i\ell}^\top\boldsymbol{\alpha}_{\mathtt{F}} + 

@@ -21,7 +21,7 @@ loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, approx.method
   k5 <- k3 + K.het.lam
   bfix <- b0[1:k1]                                # first sub-component is b for fixed taste covs (including FE)
   bhet <- b0[k2:k3]                               # second: mean het taste 
-  bLam <- vec2mat(b0[k4:k5], K.het.mu, Sigma)     # third: varcov of shocks het taste 
+  bLam <- vech2mat(b0[k4:k5], K.het.mu, Sigma)    # third: varcov of shocks het taste 
 
   ccp <- ccpGet(bfix, bhet, bLam, X, J, approx.method, S, epsMC) 
   
@@ -65,7 +65,7 @@ ccpROLogit <- function(X, b, J) {
 
 ##########################################################################
 # since mat will be symmetric we don't care about the ordering (by row or by col)
-vec2mat <- function(vec, dmn, shape) { 
+vech2mat <- function(vec, dmn, shape) { 
   if (shape == "diagonal") {
     if (dmn == 1) {
       mat <- diag(as.matrix(vec))
@@ -114,7 +114,7 @@ seGet <- function(Xlist, b, rCoefs, pars, NumApprox=TRUE) {
         k4 <- k3 + 1
         k5 <- k3 + Kfe
         bmean <- b0[1:k1]
-        bLam <- vec2mat(b0[k2:k3], K)
+        bLam <- vech2mat(b0[k2:k3], K)
         bfe <- b0[k4:k5]
         
         ccp <- ccpGet(bmean, bLam, bfe, X, id, rank, approx.method, S) 

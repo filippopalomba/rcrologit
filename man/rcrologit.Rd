@@ -43,6 +43,7 @@ The function returns a list containing the following objects:
 \item{bhet}{vector containing the estimated parameters corresponding to the "random" coefficients}
 \item{Lambda}{loading matrix of the shocks to the random coefficients}
 \item{Sigma}{variance-covariance matrix of the estimated parameters}
+\item{param.spec}{a list containing some parameters describing the specification chosen by the user}
 }
 \description{
 This function takes the object prepared by \code{dataPrep} and estimates a

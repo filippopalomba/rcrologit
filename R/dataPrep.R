@@ -118,10 +118,8 @@ dataPrep <- function(dataraw, idVar, rankVar, altVar, FE=NULL,
   rank <- data[, rankVar]        # rank
 
   # select covariates based on input name
-  if (!is.null(covs.fix)) {X.fix <- as.matrix(data[, unlist(covs.fix)])} else {X.fix <- NULL}
-  if (!is.null(covs.het)) {X.het <- as.matrix(data[, unlist(covs.het)])} else {X.het <- NULL}
-  if (!is.null(covsInt.fix)) {X.fix.int <- as.matrix(data[, unlist(covsInt.fix)])} else {X.fix.int <- NULL}
-  if (!is.null(covsInt.het)) {X.het.int <- as.matrix(data[, unlist(covsInt.het)])} else {X.het.int <- NULL}
+  if (!is.null(covs.fix)) {X.fix <- as.matrix(data[, unlist(covs.fix), drop=FALSE])} else {X.fix <- NULL}
+  if (!is.null(covs.het)) {X.het <- as.matrix(data[, unlist(covs.het), drop=FALSE])} else {X.het <- NULL}
 
   # add interaction between dummies for alternatives with covsInt (id)
   if (!is.null(covsInt.fix)) {
@@ -162,30 +160,37 @@ dataPrep <- function(dataraw, idVar, rankVar, altVar, FE=NULL,
                                       select_columns = FE,
                                       remove_first_dummy = TRUE)
     Xfe <- dataFE[,c((ncol(data)+1): ncol(dataFE))]
-    
+
     if (!is.null(X.fix)) {X.fix <- cbind(X.fix, Xfe)} else {X.fix <- Xfe}
-    Kfe <- ncol(Xfe) 
+    Kfe <- ncol(Xfe)
   } else {
     Kfe <- 0
   }
-  
+
   J <- length(unique(data[, altVar])) # number of alternatives
   K_il.fix <- length(covs.fix)        # number of unit-alternative varying covs with fixed taste
   K_il.het <- length(covs.het)        # number of unit-alternative varying covs with het taste
   K_i.fix <- length(covsInt.fix)      # number of unit varying covs with fixed taste
   K_i.het <- length(covsInt.het)      # number of unit varying covs with het taste
   K <- (K_il.fix + K_il.het) + (J-1)*(K_i.fix + K_i.het) # total number of covs
-  
+
+  if ((K_il.het + K_i.het) > 0) {
+    model <- 'rcoef_rologit'
+  } else {
+    model <- 'rologit'
+  }
   # store a bunch of useful parameters
   param.spec <-   list(K_il.fix = K_il.fix,                    # number of unit-alternative varying covs with fixed taste
                        K_il.het = K_il.het,                    # number of unit-alternative varying covs with het taste
                        K_i.fix = K_i.fix,                      # number of unit varying covs with fixed taste
                        K_i.het = K_i.het,                      # number of unit varying covs with het taste
+                       Kfe = Kfe,                              # number of unit fixed effects
                        K.fix = K_il.fix + (J-1)*K_i.fix + Kfe, # total number of covs with fixed taste
                        K.het = K_il.het + (J-1)*K_i.het,       # total number of covs with het taste
                        K = K,                                  # total number of covs
                        J = J,                                  # number of alternatives 
-                       N = length(unique(data[, idVar])))        # number of observations
+                       N = length(unique(data[, idVar])),      # number of observations
+                       model = model)                          # type of rologit (fixed or random coefs)     
 
   if (!is.null(X.fix)) {
     X.fix <- as.matrix(X.fix)
@@ -198,8 +203,8 @@ dataPrep <- function(dataraw, idVar, rankVar, altVar, FE=NULL,
     X.het <- data.frame(matrix(nrow = param.spec$N*J, ncol = 0))
   }
   toret <- list(id = id, rank = rank, X.fix = X.fix,
-                X.het = X.het, param.spec=param.spec)
-  
+                X.het = X.het, param.spec = param.spec)
+
   class(toret) <- 'dataRologit'
   return(toret)
 }
