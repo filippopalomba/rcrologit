@@ -7,11 +7,11 @@
 \method{summary}{rcrologit}(object, printFE = FALSE, ...)
 }
 \arguments{
+\item{object}{Class "rcrologit" object, obtained by calling \code{\link{rcrologit}}.}
+
 \item{printFE}{Whether fixed effects coefficients and standard errors should be displayed.}
 
 \item{...}{Other arguments.}
-
-\item{x}{Class "rcrologit" object, obtained by calling \code{\link{rcrologit}}.}
 }
 \value{
 No return value, called to print \code{\link{rcrologit}} results.

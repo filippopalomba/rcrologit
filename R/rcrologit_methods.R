@@ -130,7 +130,7 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
 #'
 #' @description The summary method for for random coefficients rank-ordered logit fitted objects.
 #'
-#' @param x Class "rcrologit" object, obtained by calling \code{\link{rcrologit}}.
+#' @param object Class "rcrologit" object, obtained by calling \code{\link{rcrologit}}.
 #' @param printFE Whether fixed effects coefficients and standard errors should be displayed.
 #' @param ... Other arguments.
 #'
