@@ -49,13 +49,13 @@
 #' \item{\eqn{Z_{i}} are covariates varying at the unit level whose coefficients are modelled as fixed.
 #' The user can specify these covariates via the option \code{covsInt.fix}. These coefficients are interacted with
 #' a dummy for the choice and treated as alternative varying covariates,
-#' i.e., \eqn{Z_{i\ell}=\sum_{j=1}^JZ_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
+#' i.e., \eqn{Z_{i\ell}=\sum_{j=1}^JZ_i\times\mathbf{1}(j=\ell)}, where \eqn{J=0} is the reference group.}
 #' \item{\eqn{W_{i\ell}} are covariates varying at the unit-alternative level whose coefficients are modelled as random.
 #' The user can specify these covariates via the option \code{covs.het}.}
 #' \item{\eqn{V_{i}} are covariates varying at the unit level whose coefficients are modelled as random.
 #' The user can specify these covariates via the option \code{covsInt.het}. These coefficients are interacted with
 #' a dummy for the choice and treated as alternative varying covariates,
-#' i.e., \eqn{V_{i\ell}=\sum_{j=1}^JV_i\times\mathbf{1}(j=\ell)}, where $J=0$ is the reference group.}
+#' i.e., \eqn{V_{i\ell}=\sum_{j=1}^JV_i\times\mathbf{1}(j=\ell)}, where \eqn{J=0} is the reference group.}
 #' \item{the random coefficients}{ are modeled as a joint multivariate normal and are i.i.d. across units,
 #' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
 #' \mathsf{N}\left(\left[\begin{array}{l}\boldsymbol{\alpha}_{\mathtt{R}} \\

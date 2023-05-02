@@ -205,8 +205,8 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
     k5 <- k3 + K.het.lam
     bfix <- b[1:k1, drop=FALSE]                                 # first sub-component is b for fixed taste covs (including FE)
     bhet <- b[k2:k3, drop=FALSE]                                # second: mean het taste
-    bLam <- vech2mat(b[k4:k5, drop=FALSE], K.het.mu, Sigma)      # third: varcov of shocks het taste
-    bLam <- abs(bLam)                                           # loadings are identified up to a sign
+    bLam <- vech2mat(b[k4:k5, drop=FALSE], K.het.mu, Sigma)     # third: varcov of shocks het taste
+    bLam <- as.matrix(abs(bLam))                                # loadings are identified up to a sign
 
     names(bfix) <- colnames(dataPrep$X.fix)
     names(bhet) <- colnames(dataPrep$X.het)
