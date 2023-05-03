@@ -25,7 +25,7 @@ loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, approx.method
 
   ccp <- ccpGet(bfix, bhet, bLam, X, J, approx.method, S, epsMC) 
   
-  lkld <- -sum(ccp)   
+  lkld <- -sum(log(ccp))   
   
   return(lkld)
 }
@@ -59,12 +59,11 @@ ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC) {
 # compute rank ordered logit ccp
 ccpROLogit <- function(X, b, J) {
   eXb <- lapply(X, function(x) exp(x%*%as.matrix(b)))
-  rol <- 0
+  rol <- 1
   for (j in seq_len(J-1)) {
-    rol <- rol + log(eXb[[j]] / unlist(Reduce(`+`, eXb[c(j:J)])))
+    rol <- rol * (eXb[[j]] / unlist(Reduce(`+`, eXb[c(j:J)])))
   }
-  # rol <- (eXb[[1]]/(eXb[[1]] + eXb[[2]] + eXb[[3]])) * (eXb[[2]]/(eXb[[2]] + eXb[[3]]))
-
+  #rol <- (eXb[[1]]/(eXb[[1]] + eXb[[2]] + eXb[[3]])) * (eXb[[2]]/(eXb[[2]] + eXb[[3]]))
   return(rol)
 }
 

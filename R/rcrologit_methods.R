@@ -42,6 +42,7 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
 
   # print (if present) fixed coefficients
   if (K_il.fix > 0 | K_i.fix > 0) {
+    K.fixx <- K.fix
     if (printFE == FALSE) K.fixx <- K.fix - Kfe 
       
     bFixprint <- as.matrix(x$bfix[1:(K.fixx)])
