@@ -5,7 +5,7 @@
 \title{Estimation and Inference for Random Coefficients Rank-Ordered Logit}
 \usage{
 rcrologit(
-  dataPrep,
+  dataprep,
   Sigma = "diagonal",
   S = 50,
   approx.method = "MC",
@@ -15,7 +15,7 @@ rcrologit(
 )
 }
 \arguments{
-\item{dataPrep}{object of class 'rcrologit' prepared via \code{\link{dataPrep}}.}
+\item{dataprep}{object of class 'rcrologit' prepared via \code{\link{dataPrep}}.}
 
 \item{Sigma}{structure of the variance-covariance of the random coefficients. It must be one of
 "diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.}

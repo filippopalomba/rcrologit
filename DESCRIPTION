@@ -15,7 +15,8 @@ Authors@R:
 Description: Estimation and inference procedures for random coefficients rank-ordered logit.
 Depends: R (>= 4.1.0)
 Imports: fastDummies (>= 1.6.3), MASS (>= 7.3), methods (>= 4.2.1),
-        numDeriv (>= 2016.8), purrr (>= 1.0.1), Rdpack (>= 2.4), rlang (>= 1.1.0)
+        numDeriv (>= 2016.8), purrr (>= 1.0.1), Rdpack (>= 2.4), rlang (>= 1.1.0),
+        tibble (>= 3.2.0)
 RdMacros: Rdpack
 License: MIT + file LICENSE
 Encoding: UTF-8

@@ -22,7 +22,7 @@
 #' For more information on the underlying specification see the \href{https://github.com/filippopalomba/rcrologit}{official repository}.
 #'
 #'
-#' @param dataPrep object of class 'rcrologit' prepared via \code{\link{dataPrep}}.
+#' @param dataprep object of class 'rcrologit' prepared via \code{\link{dataPrep}}.
 #' @param Sigma structure of the variance-covariance of the random coefficients. It must be one of
 #' "diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.
 #' @param S integer denoting the number of simulations when approximating the integrals in the conditional
@@ -119,13 +119,13 @@
 #'
 #' @export
 
-rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC",
+rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC",
                        stdErr = "numerical", verbose = FALSE, control.opts = NULL) {
 
   ################################################################################
   ## error checking
-  if (methods::is(dataPrep, "dataRologit") == FALSE) {
-    stop("dataPrep should be the object returned by running dataPrep!")
+  if (methods::is(dataprep, "dataRologit") == FALSE) {
+    stop("dataprep should be the object returned by running dataprep!")
   }
 
   if (!(Sigma %in% c("diagonal", "cholesky"))) {
@@ -140,25 +140,26 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
 
   ################################################################################
   ## prepare list of matrices (X_1, X_2, ..., X_J)
-  rCoefs <- dataPrep$param.spec$model == "rcoef_rologit"
+  rCoefs <- dataprep$param.spec$model == "rcoef_rologit"
   if (rCoefs == TRUE) {
-    K.het.mu <- dataPrep$param.spec$K.het          # number of parameters following normal distribution (mean)
+    K.het.mu <- dataprep$param.spec$K.het          # number of parameters following normal distribution (mean)
     if (Sigma == "diagonal") K.het.lam <- K.het.mu   # number of parameters in loading matrix
     if (Sigma == "cholesky") K.het.lam <- K.het.mu * (K.het.mu + 1) / 2
   } else {
     K.het.mu <- K.het.lam <- 0
   }
 
-  K.fix <- dataPrep$param.spec$K.fix  # number of fixed taste parameters to be estimated
-  J <- dataPrep$param.spec$J          # total number of alternatives
+  K.fix <- dataprep$param.spec$K.fix  # number of fixed taste parameters to be estimated
+  J <- dataprep$param.spec$J          # total number of alternatives
 
-  df <- data.frame("Worker.ID"=dataPrep$id,
-                   "rank"=dataPrep$rank,
-                   dataPrep$X.fix,
-                   dataPrep$X.het)
-  
-  XX <- reshape(df, idvar = "Worker.ID",
-                timevar = "rank",
+  df <- data.frame(dataprep$id,
+                   dataprep$rank,
+                   dataprep$X.fix,
+                   dataprep$X.het)
+  colnames(df) <- c(dataprep$param.spec$idVar, dataprep$param.spec$rankVar, colnames(df[3:ncol(df)]))
+
+  XX <- reshape(df, idvar = dataprep$param.spec$idVar,
+                timevar = dataprep$param.spec$rankVar,
                 direction = "wide")
   
   XX <- as.matrix(XX[,-1])
@@ -208,17 +209,17 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
     bLam <- vech2mat(b[k4:k5, drop=FALSE], K.het.mu, Sigma)     # third: varcov of shocks het taste
     bLam <- as.matrix(abs(bLam))                                # loadings are identified up to a sign
 
-    names(bfix) <- colnames(dataPrep$X.fix)
-    names(bhet) <- colnames(dataPrep$X.het)
+    names(bfix) <- colnames(dataprep$X.fix)
+    names(bhet) <- colnames(dataprep$X.het)
     rownames(bLam) <- colnames(bLam) <- paste0("Lambda.", names(bhet))
 
   } else {  # rank-ordered logit
     cat("Rank-Ordered Logit \n")
     
-    b0 <- rep(1, ncol(dataPrep$X.fix))
+    b0 <- rep(1, ncol(dataprep$X.fix))
     bhat <- optim(par=b0, fn=loglkld, X=Xlist, method = "BFGS")
     b <- bhat$par
-    names(b) <- colnames(dataPrep$X.fix)
+    names(b) <- colnames(dataprep$X.fix)
     
     bfix <- b
     bhet <- bLam <- NULL
@@ -239,7 +240,7 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
     SigmaHat <- se$Sigma
 
   } else if (stdErr == "analytical"  & rCoefs == FALSE) { # analytical SEs
-    se <- seGet(dataPrep, b, rCoefs, NumApprox=FALSE)
+    se <- seGet(dataprep, b, rCoefs, NumApprox=FALSE)
     SigmaHat <- se$SigmaRob
 
   } else {
@@ -248,7 +249,7 @@ rcrologit <- function(dataPrep, Sigma = "diagonal", S = 50, approx.method = "MC"
   }
   
   to_return <- list(b = b, bfix = bfix, bhet = bhet,
-                    Lambda = bLam, Sigma = SigmaHat, param.spec = dataPrep$param.spec)
+                    Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
   to_return$param.spec$K.het.lam <- K.het.lam
   to_return$param.spec$Sigma <- Sigma
   class(to_return) <- "rcrologit"

@@ -106,6 +106,11 @@ dataPrep <- function(dataraw, idVar, rankVar, altVar, FE=NULL,
   # copy dataset to avoid overwriting
   data <- dataraw
 
+  # Convert from tibble to proper dataframe object
+  if (tibble::is_tibble(data) == TRUE) {
+    data <- as.data.frame(data)
+  }
+
   # sanity checks that options are well-specified
   errorCheck(data, idVar, rankVar, altVar, FE, covs.fix, covs.het, covsInt.fix, covsInt.het)
 
@@ -190,7 +195,9 @@ dataPrep <- function(dataraw, idVar, rankVar, altVar, FE=NULL,
                        K = K,                                  # total number of covs
                        J = J,                                  # number of alternatives 
                        N = length(unique(data[, idVar])),      # number of observations
-                       model = model)                          # type of rologit (fixed or random coefs)     
+                       model = model,                          # type of rologit (fixed or random coefs) 
+                       idVar = idVar,                          # name of id variable
+                       rankVar = rankVar)                      # name of rank variable
 
   if (!is.null(X.fix)) {
     X.fix <- as.matrix(X.fix)

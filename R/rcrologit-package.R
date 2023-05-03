@@ -13,6 +13,7 @@
 #' @importFrom numDeriv hessian
 #' @importFrom purrr map
 #' @importFrom Rdpack reprompt
+#' @importFrom tibble is_tibble
 #' 
 #' @rawNamespace import(stats, except = c(lag, filter, power))
 #' @rawNamespace import(rlang, except = c(is_vector, is_complex))
