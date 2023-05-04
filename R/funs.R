@@ -87,94 +87,71 @@ vech2mat <- function(vec, dmn, shape) {
 ##########################################################################
 ##########################################################################
 # analytic standard errors
-seGet <- function(Xlist, b, rCoefs, pars, NumApprox=TRUE) {
-  
-  if (NumApprox == TRUE) { # numerical approximation of hessian of likelihood function
+seGet <- function(Xlist, b, rCoefs, NumApprox = TRUE, stdErr = NULL, pars = NULL) {
+
+  ###########################
+  # Standard rologit  
+  ###########################
+  if (rCoefs == FALSE) {
     
-    if (rCoefs == FALSE) {
+    if (NumApprox == TRUE) { # numerical approximation of hessian of likelihood function
       
-      Hes <- numDeriv::hessian(loglkld, x = b,
-                               X = Xlist)    
-      Sigma <- solve(Hes)
-      
-    } else {
-      
-     id <- pars$id 
-     rank <- pars$rank
-     K <- pars$K
-     Klam <- pars$Klam 
-     Kfe <- pars$Kfe 
-     approx.method <- pars$approx.method 
-     S <- pars$S
-      
-      loglkld2 <- function(b0, X) {
+        H <- numDeriv::hessian(loglkld, x = b, X = Xlist)    
+        Sigma <- solve(H)
+        Jac <- NULL
         
-        # unpack b0 to pass it to mvnorm
-        k1 <- K
-        k2 <- K+1
-        k3 <- k1 + Klam
-        k4 <- k3 + 1
-        k5 <- k3 + Kfe
-        bmean <- b0[1:k1]
-        bLam <- vech2mat(b0[k2:k3], K)
-        bfe <- b0[k4:k5]
+    } else {  # analytical formula to get robust (or non-robust) standard errors
+      
+      N <- pars$N
+      J <- pars$J
+
+      # Jacobian
+      eXb <- lapply(Xlist, function(x) exp(x%*%as.matrix(b)))
+      XeXb <- lapply(c(1:J), function(i) Xlist[[i]] * c(eXb[[i]]))
+      
+      Jac <- 0
+      for (j in seq_len(J-1)) {
+        Jac <- Jac + Xlist[[j]] - unlist(Reduce(`+`, XeXb[c(j:J)])) / c(unlist(Reduce(`+`, eXb[c(j:J)])))
+      }
+      Jac <- var(Jac)
+      
+      # Hessian
+      
+      H <- 0
+      for (i in seq_len(N)) {
+        xlist <- lapply(Xlist, function(x) t(x[i,,drop=FALSE]))            # X vector for each alternative
+        exblist <- lapply(xlist, function(x) exp(sum(x*b)))                # exp(X'b) for each alternative
+        Xexblist <- lapply(c(1:J), function(j) xlist[[j]] * exblist[[j]])  # X * exp(X'b) for each alternative
+        XXexblist <- lapply(c(1:J), function(j) xlist[[j]] %*% t(xlist[[j]]) * exblist[[j]])  # X * X' * exp(X'b) for each alternative
         
-        ccp <- ccpGet(bmean, bLam, bfe, X, id, rank, approx.method, S) 
+        Hes_i <- 0 
+        for (j in seq_len(J-1)) {
+          h1 <- unlist(Reduce(`+`, XXexblist[c(j:J)]))
+          h2 <- sum(unlist(exblist[j:J]))
+          den <- h2^2
+          Xexb <- unlist(Reduce(`+`, Xexblist[c(j:J)]))
+          h3 <- Xexb %*% t(Xexb)
+          Hes_i <- Hes_i + (1/den) * (h1*h2 - h3)
+        }
         
-        lkld <- -sum(log(ccp))   
-        return(lkld)
+        H <- H + Hes_i / N
+      }
+      if (stdErr == "analytical") {
+        Sigma <- solve(H) %*% Jac %*% solve(H) / N
+      } else if (stdErr == "analytical - norobust") {
+        Sigma <- solve(Jac) / N
       }
     }
-    
-    return(list(Sigma = Sigma, SigmaRob = NULL, G = NULL, Hes = Hes))
-    
-  } else {  # analytical formula
-    
-    id <- dataPrep$id
-    idlist <- unique(id[[1]])
-    rank <- dataPrep$rank 
-    X <- dataPrep$X
-    
-    Xb <- X %*% b
-    eXb <- exp(Xb)
-    
-    XX <- data.frame(id=id, rank=rank, X=X, eXb = eXb)
-    colnames(XX) <- c("id", "rank", colnames(XX[,3:ncol(XX)]))
-    
-    Jac <- matrix(NA, length(idlist), ncol(X))
-    Hes <- matrix(0, ncol(X), ncol(X))
-    
-    j <- 1
-    for (i in idlist) {
-      dataID <- subset(XX, id == i)
-      
-      # Computing variance of score V (meat)
-      exb <- dataID$eXb
-      eXbi <- sum(exb)
-      eXbi2 <- sum(exb[2:3])
-      Xi <- t(dataID[,3:(ncol(dataID)-1)])
-      
-      eXbX <- as.matrix(rowSums(Xi * exb))
-      eXbX2 <- as.matrix(rowSums(Xi[,2:3] * exb[2:3]))
-      
-      aux <- (Xi[, 1] - eXbX / eXbi) + (Xi[, 2] - eXbX2 / eXbi2)
-      Jac[j, ] <- t(aux)
-      
-      # Computing derivative of the score/Hessian (bread)
-      h1 <- exb[1] * Xi[,1] %*% t(Xi[,1]) + exb[2] * Xi[,2] %*% t(Xi[,2]) + exb[3] * Xi[,3] %*% t(Xi[,3])
-      h2 <- exb[2] * Xi[,2] %*% t(Xi[,2]) + exb[3] * Xi[,3] %*% t(Xi[,3])
-      
-      aux <- (eXbX %*% t(eXbX) - eXbi * h1 ) / eXbi^2 +  (eXbX2 %*% t(eXbX2) - eXbi2 * h2 ) / eXbi2^2
-      Hes <- Hes + aux
-      
-      j <- j + 1
-    }
-    
-    Hinv <- solve(Hes) # take average and get inverse of hessian
-    G <- t(Jac) %*% Jac 
-   
-    return(list(Sigma = G / length(idlist), SigmaRob = Hinv %*% G %*% Hinv, G = G, Hes = Hes)) 
   }
+
+  #############################
+  # Random Coefficients rologit  
+  #############################
+  if (rCoefs == TRUE) {
+    cat("Not yet implemented!\n")    
+  }
+
+  return(list(Sigma = Sigma, Jac = Jac, H = H)) 
 }
 
 

@@ -26,10 +26,18 @@ choice probabilities. Default is \code{S=50}.}
 \item{approx.method}{string indicating the procedure to approximate the integrals in the conditional
 choice probabilities}
 
-\item{stdErr}{string denoting whether standard error should be estimated and how. Available options are
-"numerical" (default) which uses numerical approximation of the Hessian matrix; "analytical" which uses
+\item{stdErr}{string denoting whether standard error should be estimated and how. Available options are:
+\itemize{
+\item{\emph{analytical}: (default) which uses
 the closed form of the variance of the score and the hessian of the likelihood to estimate standard
-errors robust to misspecification; "skip" which makes R skip the computation of standard errors}
+errors robust to misspecification}
+\item{\emph{analytical - norobust}: which uses
+the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
+robust to misspecification}
+\item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not
+robust to misspecification}
+\item{\emph{skip}: if no standard errors have to be computed. Default for random coefficients rologit at the moment.}
+}}
 
 \item{verbose}{if \code{TRUE} prints additional information in the console.}
 

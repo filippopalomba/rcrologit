@@ -29,10 +29,18 @@
 #' choice probabilities. Default is \code{S=50}.
 #' @param approx.method string indicating the procedure to approximate the integrals in the conditional
 #' choice probabilities
-#' @param stdErr string denoting whether standard error should be estimated and how. Available options are
-#' "numerical" (default) which uses numerical approximation of the Hessian matrix; "analytical" which uses
+#' @param stdErr string denoting whether standard error should be estimated and how. Available options are:
+#' \itemize{
+#' \item{\emph{analytical}: (default) which uses
 #' the closed form of the variance of the score and the hessian of the likelihood to estimate standard
-#' errors robust to misspecification; "skip" which makes R skip the computation of standard errors
+#' errors robust to misspecification}
+#' \item{\emph{analytical - norobust}: which uses
+#' the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
+#' robust to misspecification}
+#' \item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not 
+#' robust to misspecification}
+#' \item{\emph{skip}: if no standard errors have to be computed. Default for random coefficients rologit at the moment.}
+#' }
 #' @param verbose if \code{TRUE} prints additional information in the console.
 #' @param control.opts a list containing options to be passed to the underlying optimizer
 #' \code{optim}.
@@ -134,8 +142,8 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
 
   if (!(approx.method %in% c("MC"))) stop("The option 'approx.method' must be either 'MC' or XXX")
 
-  if (!(stdErr %in% c("skip", "analytical", "numerical"))) {
-    stop("'stdErr' must be either 'skip', 'analytical', or 'numerical'!")
+  if (!(stdErr %in% c("skip", "analytical", "analytical - norobust", "numerical"))) {
+    stop("'stdErr' must be either 'skip', 'analytical', 'analytical - norobust', or 'numerical'!")
   }
 
   ################################################################################
@@ -236,12 +244,13 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
   
   if (stdErr == "numerical" & rCoefs == FALSE) {  # numerical approximation
     
-    se <- seGet(Xlist, b, rCoefs, NumApprox=TRUE, pars=NULL)
+    se <- seGet(Xlist, b, rCoefs, NumApprox=TRUE)
     SigmaHat <- se$Sigma
 
-  } else if (stdErr == "analytical"  & rCoefs == FALSE) { # analytical SEs
-    se <- seGet(dataprep, b, rCoefs, NumApprox=FALSE)
-    SigmaHat <- se$SigmaRob
+  } else if (stdErr %in% c("analytical", "analytical - norobust")  & rCoefs == FALSE) { # analytical SEs
+    pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
+    se <- seGet(Xlist, b, rCoefs, NumApprox=FALSE, stdErr=stdErr, pars=pars)
+    SigmaHat <- se$Sigma
 
   } else {
     SigmaHat <- matrix(NA, nrow(b), nrow(b))
@@ -252,6 +261,9 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
                     Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
   to_return$param.spec$K.het.lam <- K.het.lam
   to_return$param.spec$Sigma <- Sigma
+  to_return$param.spec$stdErr <- stdErr
+
   class(to_return) <- "rcrologit"
+
   return(to_return)
 }

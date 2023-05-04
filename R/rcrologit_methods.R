@@ -30,6 +30,13 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
   Kfe <- x$param.spec$Kfe
   K_il.het <- x$param.spec$K_il.het
   K_i.het <- x$param.spec$K_i.het
+
+  stderr <- x$param.spec$stdErr
+  if (stderr == "analytical") {
+    stderr <- "Robust SE"
+  } else {
+    stderr <- "SE"
+  }
   
   cat("\n")
   if (rCoefs == FALSE) {
@@ -53,7 +60,7 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
     
     FixPrint <- round(cbind(bFixprint, seFixprint, lb, ub), 3)
     rownames(FixPrint) <- namesFix
-    colnames(FixPrint) <- c("Coef.", "Std. Err.", "Lower Bound", "Upper Bound")
+    colnames(FixPrint) <- c("Coef.", stderr, "Lower Bound", "Upper Bound")
     
     cat("Fixed Coefficients:\n")
     print(FixPrint, col.names = FALSE)
@@ -75,7 +82,7 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
     
     RanPrint <- round(cbind(bRanPrint, seRanPrint, lb, ub), 3)
     rownames(RanPrint) <- namesHet
-    colnames(RanPrint) <- c("Coef.", "Std. Err.", "Lower Bound", "Upper Bound")
+    colnames(RanPrint) <- c("Coef.", stderr, "Lower Bound", "Upper Bound")
     
     # prepare standard error coefficients
     SigmaB <- x$Lambda %*% t(x$Lambda)
@@ -112,7 +119,7 @@ print.rcrologit <- function(x, printFE = FALSE, ...) {
 
     RanSPrint <- round(cbind(SigmaBvech, seRanSPrint, lb, ub), 3)
     rownames(RanSPrint) <- SigmaN
-    colnames(RanSPrint) <- c("Coef.", "Std. Err.", "Lower Bound", "Upper Bound")
+    colnames(RanSPrint) <- c("Coef.", stderr, "Lower Bound", "Upper Bound")
     
     cat("\n")
     cat("Random Coefficients - Mean:\n")
@@ -170,7 +177,14 @@ summary.rcrologit <- function(object, printFE = FALSE, ...) {
   } else {
     Kfestr <- "No"
   }
-  cat("--------------------------------------------------------------------\n")
+  stderr <- object$param.spec$stdErr
+  if (stderr == "analytical") {
+    stderr <- "analytical (robust)"
+  } else if (stderr == "analytical - norobust") {
+    stderr <- "analytical"
+  }
+
+  cat("-----------------------------------------------------------------------------------\n")
   cat(paste("Number of units:                                           ", N,"\n", sep = ""))
   cat(paste("Number of alternatives:                                    ", J,"\n", sep = ""))
   cat(paste("Unit-alternative varying covariates with fixed taste:      ", K_il.fix, "\n", sep = ""))
@@ -178,8 +192,8 @@ summary.rcrologit <- function(object, printFE = FALSE, ...) {
   cat(paste("Unit-alternative varying covariates with random taste:     ", K_il.het, "\n", sep = ""))
   cat(paste("Unit varying covariates with random taste:                 ", K_i.het,"\n", sep = ""))
   cat(paste("Unit fixed effects:                                        ", Kfestr,"\n", sep = ""))
-  
-  cat("--------------------------------------------------------------------\n")
+  cat(paste("Standard Errors:                                           ", stderr,"\n", sep = ""))
+  cat("-----------------------------------------------------------------------------------\n")
   
   print.rcrologit(object)
 }
