@@ -2,7 +2,7 @@
 ##########################################################################
 # computes the likelihood of the rank-ordered logit
 loglkld <- function(b0, X) {
-  
+
   eXb <- lapply(X, function(x) exp(x%*%b0))
   lkld <- log(eXb[[1]]/(eXb[[1]] + eXb[[2]] + eXb[[3]])) + log(eXb[[2]]/(eXb[[2]] + eXb[[3]]))
   
@@ -176,22 +176,17 @@ errorCheck <- function(data, idVar, rankVar, altVar, FE, covs.fix, covs.het, cov
     if (!is.list(covs.het)) stop("covs.het should be a list!")
     if (any(!(unlist(covs.het) %in% colnames))) stop("Some of covs.het are missing in dataframe!")
   }
-  
+
   if (!is.null(covsInt.fix)) {
     if (!is.list(covsInt.fix)) stop("covsInt.fix should be a list!")
     if (any(!(unlist(covsInt.fix) %in% colnames))) stop("Some of covsInt.fix are missing in dataframe!")
   }
-  
+
   if (!is.null(covsInt.het)) {
     if (!is.list(covsInt.het)) stop("covsInt.het should be a list!")
     if (any(!(unlist(covsInt.het) %in% colnames))) stop("Some of covsInt.het are missing in dataframe!")
   }
-  
-  if (!is.null(FE)) {
-    if (!is.character(FE)) stop("The option FE should be a character vector!")
-    normalizeFE <- TRUE
-    if (length(FE) > 1) normalizeFE <- TRUE
-  }
+
 }
 
 

@@ -225,7 +225,7 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
     cat("Rank-Ordered Logit \n")
     
     b0 <- rep(1, ncol(dataprep$X.fix))
-    bhat <- optim(par=b0, fn=loglkld, X=Xlist, method = "BFGS")
+    bhat <- stats::optim(par=b0, fn=loglkld, X=Xlist, method = "BFGS")
     b <- bhat$par
     names(b) <- colnames(dataprep$X.fix)
     
@@ -242,12 +242,12 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
   
   if (verbose==TRUE) cat("Computing standard errors...\n\n")
   
-  if (stdErr == "numerical" & rCoefs == FALSE) {  # numerical approximation
+  if (stdErr == "numerical" && rCoefs == FALSE) {  # numerical approximation
     
     se <- seGet(Xlist, b, rCoefs, NumApprox=TRUE)
     SigmaHat <- se$Sigma
 
-  } else if (stdErr %in% c("analytical", "analytical - norobust")  & rCoefs == FALSE) { # analytical SEs
+  } else if (stdErr %in% c("analytical", "analytical - norobust") && rCoefs == FALSE) { # analytical SEs
     pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
     se <- seGet(Xlist, b, rCoefs, NumApprox=FALSE, stdErr=stdErr, pars=pars)
     SigmaHat <- se$Sigma
@@ -256,7 +256,7 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
     SigmaHat <- matrix(NA, nrow(b), nrow(b))
 
   }
-  
+
   to_return <- list(b = b, bfix = bfix, bhet = bhet,
                     Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
   to_return$param.spec$K.het.lam <- K.het.lam
