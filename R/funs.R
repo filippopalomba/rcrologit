@@ -11,7 +11,8 @@ loglkld <- function(b0, X) {
 
 ##########################################################################
 # computes the likelihood of the random coefficients rank-ordered logit
-loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, approx.method, S, epsMC) {
+loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma,
+                      approx.method, S, epsMC, Ncores, seed) {
 
   # unpack b0 to pass it to mvnorm
   k1 <- K.fix                            
@@ -22,8 +23,8 @@ loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, approx.method
   bfix <- b0[1:k1]                                # first sub-component is b for fixed taste covs (including FE)
   bhet <- b0[k2:k3]                               # second: mean het taste 
   bLam <- vech2mat(b0[k4:k5], K.het.mu, Sigma)    # third: varcov of shocks het taste 
-
-  ccp <- ccpGet(bfix, bhet, bLam, X, J, approx.method, S, epsMC) 
+  
+  ccp <- ccpGet(bfix, bhet, bLam, X, J, approx.method, S, epsMC, Ncores, seed) 
   
   lkld <- -sum(log(ccp))   
   
@@ -32,7 +33,7 @@ loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, approx.method
 
 ##########################################################################
 # estimates the conditional choice probabilities
-ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC) {
+ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC, Ncores, seed) {
   
   if (approx.method == "MC") {
     
@@ -49,7 +50,14 @@ ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC) {
     # each unit's ranking. apply is going to store the ccp in a column vector
     # and then cbinds all of then. thus to get the MC approximation of the 
     # integral we average the result over columns (i.e. draws)
-    ccp <- rowMeans(apply(b_i, 1, function(x) ccpROLogit(X, x, J)))
+    if (Ncores == 1) {
+      ccp <- rowMeans(apply(b_i, 1, function(x) ccpROLogit(X, x, J)))
+    } else {
+      b_list <- lapply(seq_len(nrow(b_i)), function(i) b_i[i,])
+      tmp <- parallel::mclapply(b_list, function(x) ccpROLogit(X, x, J), 
+                                mc.cores=Ncores, mc.set.seed=seed)
+      ccp <- rowMeans(matrix(unlist(tmp), nrow=nrow(X[[1]]), ncol=S, byrow=FALSE))
+    }
   }
   
   return(ccp)
@@ -63,7 +71,6 @@ ccpROLogit <- function(X, b, J) {
   for (j in seq_len(J-1)) {
     rol <- rol * (eXb[[j]] / unlist(Reduce(`+`, eXb[c(j:J)])))
   }
-  #rol <- (eXb[[1]]/(eXb[[1]] + eXb[[2]] + eXb[[3]])) * (eXb[[2]]/(eXb[[2]] + eXb[[3]]))
   return(rol)
 }
 
@@ -87,20 +94,22 @@ vech2mat <- function(vec, dmn, shape) {
 ##########################################################################
 ##########################################################################
 # analytic standard errors
-seGet <- function(Xlist, b, rCoefs, NumApprox = TRUE, stdErr = NULL, pars = NULL) {
+seGet <- function(Xlist, b, rCoefs, stdErr = NULL, pars = NULL) {
 
   ###########################
   # Standard rologit  
   ###########################
   if (rCoefs == FALSE) {
     
-    if (NumApprox == TRUE) { # numerical approximation of hessian of likelihood function
-      
+    # numerical approximation of hessian of likelihood function
+    if (stdErr == "numerical") { 
+        
         H <- numDeriv::hessian(loglkld, x = b, X = Xlist)    
         Sigma <- solve(H)
         Jac <- NULL
-        
-    } else {  # analytical formula to get robust (or non-robust) standard errors
+  
+    # analytical formula to get robust (or non-robust) standard errors
+    } else if (stdErr %in% c("analytical - norobust", "analytical")) {  
       
       N <- pars$N
       J <- pars$J
@@ -136,10 +145,15 @@ seGet <- function(Xlist, b, rCoefs, NumApprox = TRUE, stdErr = NULL, pars = NULL
         
         H <- H + Hes_i / N
       }
+      
       if (stdErr == "analytical") {
+        
         Sigma <- solve(H) %*% Jac %*% solve(H) / N
+        
       } else if (stdErr == "analytical - norobust") {
+        
         Sigma <- solve(Jac) / N
+        
       }
     }
   }
@@ -147,8 +161,22 @@ seGet <- function(Xlist, b, rCoefs, NumApprox = TRUE, stdErr = NULL, pars = NULL
   #############################
   # Random Coefficients rologit  
   #############################
+
   if (rCoefs == TRUE) {
-    cat("Not yet implemented!\n")    
+    
+    # numerical approximation of hessian of likelihood function
+    if (stdErr == "numerical") {
+
+      H <- numDeriv::hessian(loglkldRC, x = b, X = Xlist, J=pars$J, K.fix=pars$K.fix, K.het.mu=pars$K.het.mu,
+                             K.het.lam=pars$K.het.lam, Sigma=pars$Sigma, approx.method=pars$approx.method,
+                             S=pars$S, epsMC=pars$epsMC, Ncores=pars$Ncores, seed=pars$seed)    
+      Sigma <- solve(H)
+      Jac <- NULL
+      
+    # analytical formula to get robust (or non-robust) standard errors
+    } else if (stdErr %in% c("analytical - norobust", "analytical")) {
+      cat("Not yet implemented!\n")    
+    }
   }
 
   return(list(Sigma = Sigma, Jac = Jac, H = H)) 

@@ -7,9 +7,11 @@
 rcrologit(
   dataprep,
   Sigma = "diagonal",
-  S = 50,
+  S = 50L,
   approx.method = "MC",
   stdErr = "numerical",
+  Ncores = 1L,
+  seed = 8894L,
   verbose = FALSE,
   control.opts = NULL
 )
@@ -24,7 +26,9 @@ rcrologit(
 choice probabilities. Default is \code{S=50}.}
 
 \item{approx.method}{string indicating the procedure to approximate the integrals in the conditional
-choice probabilities}
+choice probabilities when including random coefficients.
+At the moment only approximation via monte-carlo simulation is available. Future releases will include
+importance sampling and other alternatives}
 
 \item{stdErr}{string denoting whether standard error should be estimated and how. Available options are:
 \itemize{
@@ -35,14 +39,19 @@ errors robust to misspecification}
 the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
 robust to misspecification}
 \item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not
-robust to misspecification}
-\item{\emph{skip}: if no standard errors have to be computed. Default for random coefficients rologit at the moment.}
+robust to misspecification. Default for random coefficients rologit at the moment.}
+\item{\emph{skip}: if no standard errors have to be computed.}
 }}
+
+\item{Ncores}{an integer indicating the number of cores to be used in simulating conditional choice probabilities.
+It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.}
+
+\item{seed}{an integer setting the seed when \code{Ncores} is larger than 1. This is passed to the underlying
+\code{parallel::mclapply} to ensure replicability of results.}
 
 \item{verbose}{if \code{TRUE} prints additional information in the console.}
 
-\item{control.opts}{a list containing options to be passed to the underlying optimizer
-\code{optim}.}
+\item{control.opts}{a list containing options to be passed to the underlying optimizer \code{optim}.}
 }
 \value{
 The function returns a list containing the following objects:

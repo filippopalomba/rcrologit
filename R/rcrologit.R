@@ -28,7 +28,9 @@
 #' @param S integer denoting the number of simulations when approximating the integrals in the conditional
 #' choice probabilities. Default is \code{S=50}.
 #' @param approx.method string indicating the procedure to approximate the integrals in the conditional
-#' choice probabilities
+#' choice probabilities when including random coefficients.
+#' At the moment only approximation via monte-carlo simulation is available. Future releases will include
+#' importance sampling and other alternatives
 #' @param stdErr string denoting whether standard error should be estimated and how. Available options are:
 #' \itemize{
 #' \item{\emph{analytical}: (default) which uses
@@ -38,12 +40,15 @@
 #' the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
 #' robust to misspecification}
 #' \item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not 
-#' robust to misspecification}
-#' \item{\emph{skip}: if no standard errors have to be computed. Default for random coefficients rologit at the moment.}
+#' robust to misspecification. Default for random coefficients rologit at the moment.}
+#' \item{\emph{skip}: if no standard errors have to be computed.}
 #' }
+#' @param Ncores an integer indicating the number of cores to be used in simulating conditional choice probabilities.
+#' It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.
+#' @param seed an integer setting the seed when \code{Ncores} is larger than 1. This is passed to the underlying
+#' \code{parallel::mclapply} to ensure replicability of results.
 #' @param verbose if \code{TRUE} prints additional information in the console.
-#' @param control.opts a list containing options to be passed to the underlying optimizer
-#' \code{optim}.
+#' @param control.opts a list containing options to be passed to the underlying optimizer \code{optim}.
 #'
 #' @details
 #' \itemize{
@@ -127,8 +132,9 @@
 #'
 #' @export
 
-rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC",
-                       stdErr = "numerical", verbose = FALSE, control.opts = NULL) {
+rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC",
+                      stdErr = "numerical", Ncores = 1L, seed = 8894L,
+                      verbose = FALSE, control.opts = NULL) {
 
   ################################################################################
   ## error checking
@@ -186,7 +192,11 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
     cat("--------------------------------------------------------------------\n")
   }
 
-  if (rCoefs == TRUE) { # random coefficients rank-ordered logit
+  ########################################
+  # random coefficients rank-ordered logit
+  ########################################
+
+  if (rCoefs == TRUE) { 
     cat("Random Coefficients Rank-Ordered Logit \n")
     cat("Optimizing Likelihood function...\n")
 
@@ -196,12 +206,10 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
       epsMC <- MASS::mvrnorm(n=S, mu=rep(0, K.het.mu), Sigma=diag(K.het.mu))
     }
 
-    #init <- Sys.time()
     bhat <- stats::optim(par=b0, fn=loglkldRC, X=Xlist, J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
-                         Sigma=Sigma, approx.method="MC", S=S, epsMC=epsMC, method = "BFGS",
-                         control=control.opts)
+                         Sigma=Sigma, approx.method="MC", S=S, epsMC=epsMC, Ncores=Ncores, seed=seed,
+                         method = "BFGS", control=control.opts)
 
-    ##########################################################
     # prepare output
 
     b <- as.matrix(bhat$par)
@@ -220,8 +228,13 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
     names(bfix) <- colnames(dataprep$X.fix)
     names(bhet) <- colnames(dataprep$X.het)
     rownames(bLam) <- colnames(bLam) <- paste0("Lambda.", names(bhet))
-
-  } else {  # rank-ordered logit
+  }
+  
+  ########################################
+  # rank-ordered logit
+  ########################################
+    
+  if (rCoefs == FALSE) {  
     cat("Rank-Ordered Logit \n")
     
     b0 <- rep(1, ncol(dataprep$X.fix))
@@ -232,31 +245,79 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50, approx.method = "MC"
     bfix <- b
     bhet <- bLam <- NULL
   }
+
+  
+  ################################################################################
+  ## Convergence check
   
   if (bhat$convergence!=0) {
     print(bhat$message)
-    stop("Algorithm does not converge!")
+    stop("Algorithm has not converged!")
   } else {
     cat("Algorithm reached convergence!\n")
   }
   
+  ################################################################################
+  ## Standard Error Computation
+  
   if (verbose==TRUE) cat("Computing standard errors...\n\n")
   
-  if (stdErr == "numerical" && rCoefs == FALSE) {  # numerical approximation
+
+  ########################################
+  # rank-ordered logit
+  ########################################    
+  
+  if (rCoefs == FALSE) {
     
-    se <- seGet(Xlist, b, rCoefs, NumApprox=TRUE)
-    SigmaHat <- se$Sigma
+    # numerical approximation
+    if (stdErr == "numerical") {  
+      
+      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr)
+      SigmaHat <- se$Sigma
+      
+    # analytical   
+    } else if (stdErr %in% c("analytical", "analytical - norobust") ) { 
+      
+      pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
+      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr, pars=pars)
+      SigmaHat <- se$Sigma
+      
+    } else { # no SEs
+      
+      SigmaHat <- matrix(NA, nrow(b), nrow(b))
+      
+    }
+  }
+  
+  ########################################
+  # random coefficients rank-ordered logit
+  ########################################    
+  
+  if (rCoefs == TRUE) {
+    
+    # numerical approximation
+    if (stdErr == "numerical") {  
 
-  } else if (stdErr %in% c("analytical", "analytical - norobust") && rCoefs == FALSE) { # analytical SEs
-    pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
-    se <- seGet(Xlist, b, rCoefs, NumApprox=FALSE, stdErr=stdErr, pars=pars)
-    SigmaHat <- se$Sigma
-
-  } else {
-    SigmaHat <- matrix(NA, nrow(b), nrow(b))
-
+      pars <- list(J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
+                   Sigma=Sigma, approx.method=approx.method, S=S, epsMC=epsMC,
+                   Ncores=Ncores, seed=seed)
+      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr, pars=pars)
+      SigmaHat <- se$Sigma
+      
+    } else if (stdErr %in% c("analytical", "analytical - norobust") ) { 
+      
+      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr)
+      #SigmaHat <- se$Sigma
+      
+    } else { # no SEs
+      SigmaHat <- matrix(NA, nrow(b), nrow(b))
+    }
   }
 
+
+  ################################################################################
+  ## Return stuff
+  
   to_return <- list(b = b, bfix = bfix, bhet = bhet,
                     Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
   to_return$param.spec$K.het.lam <- K.het.lam

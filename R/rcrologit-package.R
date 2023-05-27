@@ -11,6 +11,7 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom methods is
 #' @importFrom numDeriv hessian
+#' @importFrom parallel mclapply
 #' @importFrom purrr map
 #' @importFrom Rdpack reprompt
 #' @importFrom tibble is_tibble
