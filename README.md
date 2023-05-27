@@ -130,7 +130,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.fix = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-            
+          
 rologitEst <- rcrologit(dataprep)
 
 # Rank-ordered logit
@@ -138,6 +138,6 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.het = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-            
+          
 rologitEst <- rcrologit(dataprep, stdErr="skip")
 ```
