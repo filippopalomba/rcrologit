@@ -11,8 +11,8 @@ loglkld <- function(b0, X) {
 
 ##########################################################################
 # computes the likelihood of the random coefficients rank-ordered logit
-loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma,
-                      approx.method, S, epsMC, Ncores, seed) {
+loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, bias.corr,
+                      approx.method, S, epsMC, Ncores) {
 
   # unpack b0 to pass it to mvnorm
   k1 <- K.fix                            
@@ -24,19 +24,18 @@ loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma,
   bhet <- b0[k2:k3]                               # second: mean het taste 
   bLam <- vech2mat(b0[k4:k5], K.het.mu, Sigma)    # third: varcov of shocks het taste 
   
-  ccp <- ccpGet(bfix, bhet, bLam, X, J, approx.method, S, epsMC, Ncores, seed) 
-  
-  lkld <- -sum(log(ccp))   
+  ccp <- ccpGet(bfix, bhet, bLam, X, J, bias.corr, approx.method, S, epsMC, Ncores) 
+  lkld <- -sum(ccp)
   
   return(lkld)
 }
 
 ##########################################################################
 # estimates the conditional choice probabilities
-ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC, Ncores, seed) {
+ccpGet <- function(bfix, bhet, bLam, X, J, bias.corr, approx.method, S, epsMC, Ncores) {
   
   if (approx.method == "MC") {
-    
+
     # shift and rescale normal iid draws
     b_i <- t(apply(epsMC, 1, function(x) bLam %*% x))  # apply loading matrix to each row of shocks
     b_i <- sweep(b_i, 2, bhet, "+")                    # add new mean to scaled shocks
@@ -51,13 +50,30 @@ ccpGet <- function(bfix, bhet, bLam, X, J, approx.method, S, epsMC, Ncores, seed
     # and then cbinds all of then. thus to get the MC approximation of the 
     # integral we average the result over columns (i.e. draws)
     if (Ncores == 1) {
-      ccp <- rowMeans(apply(b_i, 1, function(x) ccpROLogit(X, x, J)))
+      ccp <- apply(b_i, 1, function(x) ccpROLogit(X, x, J))
     } else {
       b_list <- lapply(seq_len(nrow(b_i)), function(i) b_i[i,])
       tmp <- parallel::mclapply(b_list, function(x) ccpROLogit(X, x, J), 
-                                mc.cores=Ncores, mc.set.seed=seed)
-      ccp <- rowMeans(matrix(unlist(tmp), nrow=nrow(X[[1]]), ncol=S, byrow=FALSE))
+                                mc.cores=Ncores)
+      ccp <- matrix(unlist(tmp), nrow=nrow(X[[1]]), ncol=S, byrow=FALSE)
     }
+    
+    if (is.null(dim(ccp))) ccp <- t(as.matrix(ccp)) # handles SE computation
+    
+    fhat <- rowMeans(ccp)
+    
+    if (bias.corr == TRUE) {
+
+      fhatVar <- rowMeans((ccp - fhat)^2)
+      bc <- 0.5 * fhatVar / fhat^2 
+      
+    } else {
+      
+      bc <- 0
+      
+    }
+    
+    ccp <- log(fhat) + bc
   }
   
   return(ccp)
@@ -94,67 +110,58 @@ vech2mat <- function(vec, dmn, shape) {
 ##########################################################################
 ##########################################################################
 # analytic standard errors
-seGet <- function(Xlist, b, rCoefs, stdErr = NULL, pars = NULL) {
+seGet <- function(Xlist, b, rCoefs, robust, pars = NULL) {
 
   ###########################
   # Standard rologit  
   ###########################
   if (rCoefs == FALSE) {
     
-    # numerical approximation of hessian of likelihood function
-    if (stdErr == "numerical") { 
-        
-        H <- numDeriv::hessian(loglkld, x = b, X = Xlist)    
-        Sigma <- solve(H)
-        Jac <- NULL
-  
     # analytical formula to get robust (or non-robust) standard errors
-    } else if (stdErr %in% c("analytical - norobust", "analytical")) {  
-      
-      N <- pars$N
-      J <- pars$J
+    
+    N <- pars$N
+    J <- pars$J
 
-      # Jacobian
-      eXb <- lapply(Xlist, function(x) exp(x%*%as.matrix(b)))
-      XeXb <- lapply(c(1:J), function(i) Xlist[[i]] * c(eXb[[i]]))
+    # Jacobian
+    eXb <- lapply(Xlist, function(x) exp(x%*%as.matrix(b)))
+    XeXb <- lapply(c(1:J), function(i) Xlist[[i]] * c(eXb[[i]]))
+    
+    Jac <- 0
+    for (j in seq_len(J-1)) {
+      Jac <- Jac + Xlist[[j]] - unlist(Reduce(`+`, XeXb[c(j:J)])) / c(unlist(Reduce(`+`, eXb[c(j:J)])))
+    }
+    Jac <- var(Jac)
+    
+    # Hessian
+    
+    H <- 0
+    for (i in seq_len(N)) {
+      xlist <- lapply(Xlist, function(x) t(x[i,,drop=FALSE]))            # X vector for each alternative
+      exblist <- lapply(xlist, function(x) exp(sum(x*b)))                # exp(X'b) for each alternative
+      Xexblist <- lapply(c(1:J), function(j) xlist[[j]] * exblist[[j]])  # X * exp(X'b) for each alternative
+      XXexblist <- lapply(c(1:J), function(j) xlist[[j]] %*% t(xlist[[j]]) * exblist[[j]])  # X * X' * exp(X'b) for each alternative
       
-      Jac <- 0
+      Hes_i <- 0 
       for (j in seq_len(J-1)) {
-        Jac <- Jac + Xlist[[j]] - unlist(Reduce(`+`, XeXb[c(j:J)])) / c(unlist(Reduce(`+`, eXb[c(j:J)])))
-      }
-      Jac <- var(Jac)
-      
-      # Hessian
-      
-      H <- 0
-      for (i in seq_len(N)) {
-        xlist <- lapply(Xlist, function(x) t(x[i,,drop=FALSE]))            # X vector for each alternative
-        exblist <- lapply(xlist, function(x) exp(sum(x*b)))                # exp(X'b) for each alternative
-        Xexblist <- lapply(c(1:J), function(j) xlist[[j]] * exblist[[j]])  # X * exp(X'b) for each alternative
-        XXexblist <- lapply(c(1:J), function(j) xlist[[j]] %*% t(xlist[[j]]) * exblist[[j]])  # X * X' * exp(X'b) for each alternative
-        
-        Hes_i <- 0 
-        for (j in seq_len(J-1)) {
-          h1 <- unlist(Reduce(`+`, XXexblist[c(j:J)]))
-          h2 <- sum(unlist(exblist[j:J]))
-          den <- h2^2
-          Xexb <- unlist(Reduce(`+`, Xexblist[c(j:J)]))
-          h3 <- Xexb %*% t(Xexb)
-          Hes_i <- Hes_i + (1/den) * (h1*h2 - h3)
-        }
-        
-        H <- H + Hes_i / N
+        h1 <- unlist(Reduce(`+`, XXexblist[c(j:J)]))
+        h2 <- sum(unlist(exblist[j:J]))
+        den <- h2^2
+        Xexb <- unlist(Reduce(`+`, Xexblist[c(j:J)]))
+        h3 <- Xexb %*% t(Xexb)
+        Hes_i <- Hes_i + (1/den) * (h1*h2 - h3)
       }
       
-      if (stdErr == "analytical") {
-        
-        Sigma <- solve(H) %*% Jac %*% solve(H) / N
-        
-      } else if (stdErr == "analytical - norobust") {
-        
-        Sigma <- solve(Jac) / N
-        
-      }
+      H <- H + Hes_i / N
+    }
+      
+    if (robust == TRUE) {
+      
+      Sigma <- solve(H) %*% Jac %*% solve(H) / N
+      
+    } else if (robust == FALSE) {
+      
+      Sigma <- solve(Jac) / N
+      
     }
   }
 
@@ -163,25 +170,50 @@ seGet <- function(Xlist, b, rCoefs, stdErr = NULL, pars = NULL) {
   #############################
 
   if (rCoefs == TRUE) {
+
+    H <- numDeriv::hessian(loglkldRC, x = b, X = Xlist, J=pars$J, K.fix=pars$K.fix, K.het.mu=pars$K.het.mu,
+                           K.het.lam=pars$K.het.lam, Sigma=pars$Sigma, bias.corr=pars$bias.corr, 
+                           approx.method=pars$approx.method, S=pars$S, epsMC=pars$epsMC, Ncores=pars$Ncores)    
     
     # numerical approximation of hessian of likelihood function
-    if (stdErr == "numerical") {
+    if (robust == FALSE) {
 
-      H <- numDeriv::hessian(loglkldRC, x = b, X = Xlist, J=pars$J, K.fix=pars$K.fix, K.het.mu=pars$K.het.mu,
-                             K.het.lam=pars$K.het.lam, Sigma=pars$Sigma, approx.method=pars$approx.method,
-                             S=pars$S, epsMC=pars$epsMC, Ncores=pars$Ncores, seed=pars$seed)    
       Sigma <- solve(H)
       Jac <- NULL
       
-    # analytical formula to get robust (or non-robust) standard errors
-    } else if (stdErr %in% c("analytical - norobust", "analytical")) {
-      cat("Not yet implemented!\n")    
+    } else {
+      # numerical approximation of the variance of the jacobian of likelihood function
+      
+      if(pars$verbose && pars$Ncores == 1) {
+        cat("This might take several minutes! If you are not already doing it, consider using multiple cores!")
+      }
+      
+      ccp <- ccpGet(bfix=pars$bfix, bhet=pars$bhet, bLam=pars$bLam, X=Xlist, J=pars$J, 
+                    bias.corr=pars$bias.corr, approx.method=pars$approx.method, S=pars$S,
+                    epsMC=pars$epsMC, Ncores=pars$Ncores)
+            
+      Jlist <- parallel::mclapply(c(1:pars$N), function(i) jacobianGet(i=i, Xlist=Xlist, b=b, pars=pars),
+                                  mc.cores = pars$Ncores)
+      Jmat <- Reduce(rbind, Jlist)
+      Jac <- var(Jmat * sqrt(pars$N)) # rescale by sqrt(N) 
+      
+      Sigma <- solve(H) %*% Jac %*% solve(H) 
     }
   }
 
   return(list(Sigma = Sigma, Jac = Jac, H = H)) 
 }
 
+
+jacobianGet <- function(i, Xlist, b, pars) {
+  
+  xdata <- lapply(Xlist, function(x) x[i, , drop=F])
+  J <- numDeriv::jacobian(loglkldRC, x = b, X = xdata, J=pars$J, K.fix=pars$K.fix, K.het.mu=pars$K.het.mu,
+                          K.het.lam=pars$K.het.lam, Sigma=pars$Sigma, bias.corr=pars$bias.corr, 
+                          approx.method=pars$approx.method, S=pars$S, epsMC=pars$epsMC, Ncores=1)
+
+  return(J)
+}
 
 ##########################################################################
 ##########################################################################

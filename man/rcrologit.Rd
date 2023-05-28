@@ -9,10 +9,12 @@ rcrologit(
   Sigma = "diagonal",
   S = 50L,
   approx.method = "MC",
-  stdErr = "numerical",
+  bias.correction = FALSE,
+  robust = FALSE,
+  stdErr.dfadj = TRUE,
+  skip.stdErr = FALSE,
   Ncores = 1L,
-  seed = 8894L,
-  verbose = FALSE,
+  verbose = TRUE,
   control.opts = NULL
 )
 }
@@ -23,31 +25,29 @@ rcrologit(
 "diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.}
 
 \item{S}{integer denoting the number of simulations when approximating the integrals in the conditional
-choice probabilities. Default is \code{S=50}.}
+choice probabilities. Default is \code{S=50}. More on how to select the optimal \eqn{S} can be found in
+\insertCite{cameron2005MicroeconometricsMethodsApplications}{rcrologit} and \insertCite{hajivassiliou2000PracticalIssuesMaximum}{rcrologit}.}
 
 \item{approx.method}{string indicating the procedure to approximate the integrals in the conditional
 choice probabilities when including random coefficients.
 At the moment only approximation via monte-carlo simulation is available. Future releases will include
 importance sampling and other alternatives}
 
-\item{stdErr}{string denoting whether standard error should be estimated and how. Available options are:
-\itemize{
-\item{\emph{analytical}: (default) which uses
-the closed form of the variance of the score and the hessian of the likelihood to estimate standard
-errors robust to misspecification}
-\item{\emph{analytical - norobust}: which uses
-the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
-robust to misspecification}
-\item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not
-robust to misspecification. Default for random coefficients rologit at the moment.}
-\item{\emph{skip}: if no standard errors have to be computed.}
-}}
+\item{bias.correction}{if \code{TRUE} applies the bias correction for simulated maximum likelihood proposed in
+\insertCite{gourieroux1991SimulationBasedInference}{rcrologit}. For more details see Section 12.4.4 in \insertCite{cameron2005MicroeconometricsMethodsApplications}{rcrologit}.
+This option is effective only when random coefficients are
+included in the model.}
 
-\item{Ncores}{an integer indicating the number of cores to be used in simulating conditional choice probabilities.
+\item{robust}{if \code{TRUE} computes standard errors robust to misspecification.}
+
+\item{stdErr.dfadj}{boolean indicating whether a degrees-of-freedom correction should be used when estimating
+the variance of the ML estimator. See \strong{Details} section for more.}
+
+\item{skip.stdErr}{if \code{TRUE} skips computation of standard errors which can be intensive in the random
+coefficient rologit model.}
+
+\item{Ncores}{integer indicating the number of cores to be used in simulating conditional choice probabilities.
 It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.}
-
-\item{seed}{an integer setting the seed when \code{Ncores} is larger than 1. This is passed to the underlying
-\code{parallel::mclapply} to ensure replicability of results.}
 
 \item{verbose}{if \code{TRUE} prints additional information in the console.}
 
@@ -86,6 +86,12 @@ For more information on the underlying specification see the \href{https://githu
 }
 \details{
 \itemize{
+\item{\strong{Variance-Covariance degrees-of-freedom adjustment.} When \code{stdErr.dfadj = FALSE}, the estimate for the
+asymptotic variance of \eqn{\sqrt{N}(\widehat{\boldsymbol{\theta}}-\boldsymbol{\theta})} is divided by the sample size \eqn{N}. If instead,
+\code{stdErr.dfadj = TRUE}, then the estimate for the
+asymptotic variance of \eqn{\sqrt{N}(\widehat{\boldsymbol{\theta}}-\boldsymbol{\theta})} is divided by \eqn{N-k}, where \eqn{k} is the
+dimension of \eqn{\boldsymbol{\theta}}.}
+
 \item{\strong{Variance-Covariance of random parameters.} The option \code{Sigma} allows the user to
 model directly the covariance structure of the random coefficients. Precisely, it shape \eqn{\boldsymbol{\Sigma}} in
 \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim

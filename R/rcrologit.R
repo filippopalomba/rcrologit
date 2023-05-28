@@ -26,32 +26,34 @@
 #' @param Sigma structure of the variance-covariance of the random coefficients. It must be one of
 #' "diagonal" or "cholesky". Default is \code{Sigma="diagonal"}. See \strong{Details} section for more.
 #' @param S integer denoting the number of simulations when approximating the integrals in the conditional
-#' choice probabilities. Default is \code{S=50}.
+#' choice probabilities. Default is \code{S=50}. More on how to select the optimal \eqn{S} can be found in
+#' \insertCite{cameron2005MicroeconometricsMethodsApplications}{rcrologit} and \insertCite{hajivassiliou2000PracticalIssuesMaximum}{rcrologit}.
 #' @param approx.method string indicating the procedure to approximate the integrals in the conditional
 #' choice probabilities when including random coefficients.
 #' At the moment only approximation via monte-carlo simulation is available. Future releases will include
 #' importance sampling and other alternatives
-#' @param stdErr string denoting whether standard error should be estimated and how. Available options are:
-#' \itemize{
-#' \item{\emph{analytical}: (default) which uses
-#' the closed form of the variance of the score and the hessian of the likelihood to estimate standard
-#' errors robust to misspecification}
-#' \item{\emph{analytical - norobust}: which uses
-#' the closed form of the variance of the score to estimate standard errors. Note that this standard errors are not
-#' robust to misspecification}
-#' \item{\emph{numerical}: which numerically approximates the Hessian matrix. Note that this standard errors are not 
-#' robust to misspecification. Default for random coefficients rologit at the moment.}
-#' \item{\emph{skip}: if no standard errors have to be computed.}
-#' }
-#' @param Ncores an integer indicating the number of cores to be used in simulating conditional choice probabilities.
+#' @param bias.correction if \code{TRUE} applies the bias correction for simulated maximum likelihood proposed in 
+#' \insertCite{gourieroux1991SimulationBasedInference}{rcrologit}. For more details see Section 12.4.4 in \insertCite{cameron2005MicroeconometricsMethodsApplications}{rcrologit}.
+#' This option is effective only when random coefficients are 
+#' included in the model.
+#' @param robust if \code{TRUE} computes standard errors robust to misspecification.
+#' @param stdErr.dfadj boolean indicating whether a degrees-of-freedom correction should be used when estimating
+#' the variance of the ML estimator. See \strong{Details} section for more. 
+#' @param skip.stdErr if \code{TRUE} skips computation of standard errors which can be intensive in the random 
+#' coefficient rologit model.
+#' @param Ncores integer indicating the number of cores to be used in simulating conditional choice probabilities.
 #' It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.
-#' @param seed an integer setting the seed when \code{Ncores} is larger than 1. This is passed to the underlying
-#' \code{parallel::mclapply} to ensure replicability of results.
 #' @param verbose if \code{TRUE} prints additional information in the console.
 #' @param control.opts a list containing options to be passed to the underlying optimizer \code{optim}.
 #'
 #' @details
 #' \itemize{
+#' \item{\strong{Variance-Covariance degrees-of-freedom adjustment.} When \code{stdErr.dfadj = FALSE}, the estimate for the 
+#' asymptotic variance of \eqn{\sqrt{N}(\widehat{\boldsymbol{\theta}}-\boldsymbol{\theta})} is divided by the sample size \eqn{N}. If instead,
+#' \code{stdErr.dfadj = TRUE}, then the estimate for the 
+#' asymptotic variance of \eqn{\sqrt{N}(\widehat{\boldsymbol{\theta}}-\boldsymbol{\theta})} is divided by \eqn{N-k}, where \eqn{k} is the 
+#' dimension of \eqn{\boldsymbol{\theta}}.}
+#' 
 #' \item{\strong{Variance-Covariance of random parameters.} The option \code{Sigma} allows the user to
 #' model directly the covariance structure of the random coefficients. Precisely, it shape \eqn{\boldsymbol{\Sigma}} in
 #' \deqn{\left[\begin{array}{c}\boldsymbol{\alpha}_i \\ \boldsymbol{\beta}_i \end{array}\right]\sim
@@ -132,9 +134,9 @@
 #'
 #' @export
 
-rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC",
-                      stdErr = "numerical", Ncores = 1L, seed = 8894L,
-                      verbose = FALSE, control.opts = NULL) {
+rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC", bias.correction = FALSE,
+                      robust = FALSE, stdErr.dfadj = TRUE, skip.stdErr = FALSE, Ncores = 1L,
+                      verbose = TRUE, control.opts = NULL) {
 
   ################################################################################
   ## error checking
@@ -147,10 +149,6 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
   }
 
   if (!(approx.method %in% c("MC"))) stop("The option 'approx.method' must be either 'MC' or XXX")
-
-  if (!(stdErr %in% c("skip", "analytical", "analytical - norobust", "numerical"))) {
-    stop("'stdErr' must be either 'skip', 'analytical', 'analytical - norobust', or 'numerical'!")
-  }
 
   ################################################################################
   ## prepare list of matrices (X_1, X_2, ..., X_J)
@@ -188,17 +186,16 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
   
   ################################################################################
   ## Maximum Likelihood Estimation
-  if (verbose) {
-    cat("--------------------------------------------------------------------\n")
-  }
+  if (verbose) cat("--------------------------------------------------------------------\n")
+  
 
   ########################################
   # random coefficients rank-ordered logit
   ########################################
 
   if (rCoefs == TRUE) { 
-    cat("Random Coefficients Rank-Ordered Logit \n")
-    cat("Optimizing Likelihood function...\n")
+    if (verbose) cat("Random Coefficients Rank-Ordered Logit \n")
+    if (verbose) cat("Optimizing Likelihood function...\n")
 
     b0 <- rep(1, K.fix + K.het.mu + K.het.lam)     # order is going to be (beta.fix, beta.het, Sigma)
 
@@ -207,7 +204,7 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
     }
 
     bhat <- stats::optim(par=b0, fn=loglkldRC, X=Xlist, J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
-                         Sigma=Sigma, approx.method="MC", S=S, epsMC=epsMC, Ncores=Ncores, seed=seed,
+                         Sigma=Sigma, bias.corr=bias.correction, approx.method="MC", S=S, epsMC=epsMC, Ncores=Ncores,
                          method = "BFGS", control=control.opts)
 
     # prepare output
@@ -235,7 +232,7 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
   ########################################
     
   if (rCoefs == FALSE) {  
-    cat("Rank-Ordered Logit \n")
+    if (verbose) cat("Rank-Ordered Logit \n")
     
     b0 <- rep(1, ncol(dataprep$X.fix))
     bhat <- stats::optim(par=b0, fn=loglkld, X=Xlist, method = "BFGS")
@@ -254,66 +251,53 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
     print(bhat$message)
     stop("Algorithm has not converged!")
   } else {
-    cat("Algorithm reached convergence!\n")
+    if (verbose) cat("Algorithm reached convergence!\n")
   }
   
   ################################################################################
   ## Standard Error Computation
   
-  if (verbose==TRUE) cat("Computing standard errors...\n\n")
-  
-
-  ########################################
-  # rank-ordered logit
-  ########################################    
-  
-  if (rCoefs == FALSE) {
+  if (skip.stdErr == TRUE) {
     
-    # numerical approximation
-    if (stdErr == "numerical") {  
-      
-      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr)
-      SigmaHat <- se$Sigma
-      
-    # analytical   
-    } else if (stdErr %in% c("analytical", "analytical - norobust") ) { 
+    SigmaHat <- matrix(NA, nrow(b), nrow(b))
+    
+  } else { 
+    
+    if (verbose) cat("Computing standard errors...\n")
+    
+    ########################################
+    # rank-ordered logit
+    ########################################    
+    
+    if (rCoefs == FALSE) {
       
       pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
-      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr, pars=pars)
+      se <- seGet(Xlist, b, rCoefs, robust=robust, pars=pars)
       SigmaHat <- se$Sigma
       
-    } else { # no SEs
-      
-      SigmaHat <- matrix(NA, nrow(b), nrow(b))
-      
     }
-  }
-  
-  ########################################
-  # random coefficients rank-ordered logit
-  ########################################    
-  
-  if (rCoefs == TRUE) {
     
-    # numerical approximation
-    if (stdErr == "numerical") {  
-
-      pars <- list(J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
-                   Sigma=Sigma, approx.method=approx.method, S=S, epsMC=epsMC,
-                   Ncores=Ncores, seed=seed)
-      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr, pars=pars)
+    ########################################
+    # random coefficients rank-ordered logit
+    ########################################    
+    
+    if (rCoefs == TRUE) {
+      
+      pars <- list(bfix=bfix, bhet=bhet, bLam=bLam, J=J, bias.corr=bias.correction, 
+                   approx.method=approx.method, S=S, epsMC=epsMC, Ncores=Ncores,
+                   K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam, Sigma=Sigma,
+                   N=dataprep$param.spec$N, verbose=verbose)
+      se <- seGet(Xlist, b, rCoefs, robust=robust, pars=pars)
       SigmaHat <- se$Sigma
       
-    } else if (stdErr %in% c("analytical", "analytical - norobust") ) { 
-      
-      se <- seGet(Xlist, b, rCoefs, stdErr=stdErr)
-      #SigmaHat <- se$Sigma
-      
-    } else { # no SEs
-      SigmaHat <- matrix(NA, nrow(b), nrow(b))
+    }
+    
+    if (stdErr.dfadj == TRUE ) {
+      N <- dataprep$param.spec$N
+      k <- length(b)
+      SigmaHat <- SigmaHat * ((N - k) / N)
     }
   }
-
 
   ################################################################################
   ## Return stuff
@@ -322,9 +306,13 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
                     Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
   to_return$param.spec$K.het.lam <- K.het.lam
   to_return$param.spec$Sigma <- Sigma
-  to_return$param.spec$stdErr <- stdErr
+  to_return$param.spec$robust <- robust
 
-  class(to_return) <- "rcrologit"
+  if (rCoefs == TRUE) {
+    class(to_return) <- "rcrologit"
+  } else {
+    class(to_return) <- "rologit"
+  }
 
   return(to_return)
 }
