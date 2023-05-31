@@ -47,7 +47,8 @@ the variance of the ML estimator. See \strong{Details} section for more.}
 coefficient rologit model.}
 
 \item{Ncores}{integer indicating the number of cores to be used in simulating conditional choice probabilities.
-It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.}
+It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.
+On Windows systems it is set automatically to \code{Ncores = 1}.}
 
 \item{verbose}{if \code{TRUE} prints additional information in the console.}
 

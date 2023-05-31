@@ -43,6 +43,7 @@
 #' coefficient rologit model.
 #' @param Ncores integer indicating the number of cores to be used in simulating conditional choice probabilities.
 #' It affects speed only when random coefficients are included in the model. Speed gains are sensible whenever \eqn{S\geq 100}.
+#' On Windows systems it is set automatically to \code{Ncores = 1}.
 #' @param verbose if \code{TRUE} prints additional information in the console.
 #' @param control.opts a list containing options to be passed to the underlying optimizer \code{optim}.
 #'
@@ -150,6 +151,8 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
 
   if (!(approx.method %in% c("MC"))) stop("The option 'approx.method' must be either 'MC' or XXX")
 
+  if (.Platform$OS.type != "unix") Ncores <- 1
+  
   ################################################################################
   ## prepare list of matrices (X_1, X_2, ..., X_J)
   rCoefs <- dataprep$param.spec$model == "rcoef_rologit"
