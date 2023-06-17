@@ -9,6 +9,7 @@ loglkld <- function(b0, X) {
   return(-sum(lkld))
 }
 
+
 ##########################################################################
 # computes the likelihood of the random coefficients rank-ordered logit
 loglkldRC <- function(b0, X, J, K.fix, K.het.mu, K.het.lam, Sigma, bias.corr,
