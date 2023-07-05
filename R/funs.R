@@ -1,11 +1,15 @@
 ##########################################################################
 ##########################################################################
 # computes the likelihood of the rank-ordered logit
-loglkld <- function(b0, X) {
+loglkld <- function(b0, X, J) {
 
   eXb <- lapply(X, function(x) exp(x%*%b0))
-  lkld <- log(eXb[[1]]/(eXb[[1]] + eXb[[2]] + eXb[[3]])) + log(eXb[[2]]/(eXb[[2]] + eXb[[3]]))
   
+  lkld <- 0
+  for (j in seq_len(J-1)) {
+    lkld <- lkld + log(eXb[[j]] / unlist(Reduce(`+`, eXb[c(j:J)])))
+  }  
+    
   return(-sum(lkld))
 }
 

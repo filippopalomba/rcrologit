@@ -209,9 +209,8 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
     bhat <- stats::optim(par=b0, fn=loglkldRC, X=Xlist, J=J, K.fix=K.fix, K.het.mu=K.het.mu, K.het.lam=K.het.lam,
                          Sigma=Sigma, bias.corr=bias.correction, approx.method="MC", S=S, epsMC=epsMC, Ncores=Ncores,
                          method = "BFGS", control=control.opts)
-
+    
     # prepare output
-
     b <- as.matrix(bhat$par)
 
     # unpack b to store results
@@ -238,12 +237,15 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
     if (verbose) cat("Rank-Ordered Logit \n")
     
     b0 <- rep(1, ncol(dataprep$X.fix))
-    bhat <- stats::optim(par=b0, fn=loglkld, X=Xlist, method = "BFGS")
+    bhat <- stats::optim(par=b0, fn=loglkld, X=Xlist, J=J, method = "BFGS")
     b <- bhat$par
     names(b) <- colnames(dataprep$X.fix)
     
     bfix <- b
     bhet <- bLam <- NULL
+    
+    # retrieve fitted values
+    #browser()
   }
 
   
@@ -311,11 +313,7 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
   to_return$param.spec$Sigma <- Sigma
   to_return$param.spec$robust <- robust
 
-  if (rCoefs == TRUE) {
-    class(to_return) <- "rcrologit"
-  } else {
-    class(to_return) <- "rologit"
-  }
+  class(to_return) <- "rcrologit"
 
   return(to_return)
 }
