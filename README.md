@@ -10,6 +10,8 @@ status](https://github.com/filippopalomba/rcrologit/workflows/R-CMD-check/badge.
 
 <!-- badges: end -->
 
+DISCLAIMER: If the following text is not compiling for whatever reason, please use the README.pdf file available in the repo.
+
 The package provides estimation and inferential procedures for rank-ordered logit model with agents with heterogeneous taste preferences.
 
 ## Setup
@@ -128,7 +130,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.fix = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-        
+    
 rologitEst <- rcrologit(dataprep)
 
 # Rank-ordered logit
@@ -136,6 +138,6 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.het = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-        
+    
 rologitEst <- rcrologit(dataprep, stdErr="skip")
 ```
