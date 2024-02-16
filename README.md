@@ -51,8 +51,8 @@ In light of this, we can see that the rank-ordered logit is nothing else than a 
 In its most general form, we allow the user to model $u_{i\ell}$ in the latent utility model as
 
 $$
-u_{i\ell}=X_{i\ell}^\top\boldsymbol{\beta}_{\mathtt{F}} + Z_i^\top\boldsymbol{\alpha}_{\ell,\mathtt{F}} + 
- W_{i\ell}^\top\boldsymbol{\beta}_i + V_i^\top\boldsymbol{\alpha}_{i\ell} + \delta_\ell
+u_{i\ell} = X_{i\ell}^{\top} \boldsymbol{\beta}_{\mathtt{F}} + Z_i^{\top} \boldsymbol{\alpha}_{\ell,\mathtt{F}} + 
+ W_{i\ell}^{\top} \boldsymbol{\beta}_i + V_i^{\top} \boldsymbol{\alpha}_{i\ell} + \delta_{\ell}
 $$
 
 An alternative, handier way to rewrite the model above is to define $Z_{i\ell}:=\sum\limits_{j=1}^JZ_i\times\mathbf{1}(j=\ell)$ and $V_{i\ell}:=\sum\limits_{j=1}^JV_i\times\mathbf{1}(j=\ell),\ell=1,2,\ldots,J$, and consider the equivalent model
