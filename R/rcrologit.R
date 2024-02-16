@@ -113,6 +113,9 @@
 #' \item{Lambda}{loading matrix of the shocks to the random coefficients}
 #' \item{Sigma}{variance-covariance matrix of the estimated parameters}
 #' \item{param.spec}{a list containing some parameters describing the specification chosen by the user}
+#' \item{X}{a list containing the design matrix for each alternative}
+#' \item{fitted}{a dataframe containing the fitted values of the model. The fitted values are computed as
+#' the probability that alternatives are ranked first.}
 #'
 #' @author
 #' Chiara Motta, University of California Berkeley. \email{cmotta@berkeley.edu}
@@ -244,8 +247,15 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
     bfix <- b
     bhet <- bLam <- NULL
     
-    # retrieve fitted values
-    #browser()
+    # retrieve fitted values for P(alternative j is ranked first | X)
+    eXb <- lapply(Xlist, function(x) exp(x%*%as.matrix(b)))
+    fitted <- data.frame(id=dataprep$id, rank=dataprep$rank)
+    fitted$p.hat <- NA 
+    
+    for (j in seq_len(J)) {
+      phat <- eXb[[j]] / unlist(Reduce(`+`, eXb[c(1:J)]))
+      fitted[fitted$rank==j, "p.hat"] <- phat
+    }
   }
 
   
@@ -279,7 +289,6 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
       pars <- list(N = dataprep$param.spec$N, J = dataprep$param.spec$J)
       se <- seGet(Xlist, b, rCoefs, robust=robust, pars=pars)
       SigmaHat <- se$Sigma
-      
     }
     
     ########################################
@@ -308,7 +317,8 @@ rcrologit <- function(dataprep, Sigma = "diagonal", S = 50L, approx.method = "MC
   ## Return stuff
   
   to_return <- list(b = b, bfix = bfix, bhet = bhet,
-                    Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec)
+                    Lambda = bLam, Sigma = SigmaHat, param.spec = dataprep$param.spec,
+                    X = Xlist, fitted=fitted)
   to_return$param.spec$K.het.lam <- K.het.lam
   to_return$param.spec$Sigma <- Sigma
   to_return$param.spec$robust <- robust

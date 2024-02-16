@@ -106,7 +106,7 @@ $$
 \widehat{\mathbb{P}}_{(\widehat{\beta},\widehat{\Sigma})}[r_i\mid \mathcal{D}]=\frac{1}{S}\sum_{i=1}^S \prod_{j=0}^{J-1} \frac{\exp \left(u_{ir_i(j)}(\theta,\beta_i^{(s)})\right)}{\sum\limits_{j\leq \ell\leq J} \exp \left(u_{ir_i(\ell)}(\theta,\beta_i^{(s)})\right)},
 $$
 
-where $\beta_i\overset{\mathtt{iid}}{\sim}\mathsf{N}(\widehat{\boldsymbol\beta}_{\mathtt{R}},\widehat{\boldsymbol{\Sigma}})$.
+where $\boldsymbol{\beta}_i\overset{\mathtt{iid}}{\sim}\mathsf{N}(\widehat{\boldsymbol\beta}_{\mathtt{R}},\widehat{\boldsymbol{\Sigma}})$.
 
 ## Installation
 
@@ -130,7 +130,7 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.fix = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-          
+        
 rologitEst <- rcrologit(dataprep)
 
 # Rank-ordered logit
@@ -138,6 +138,6 @@ dataprep <- dataPrep(data, idVar = "Worker_ID", rankVar = "rank",
                     altVar = "alternative",
                     covsInt.het = list("Gender"),
                     covs.fix = list("log_Wage"), FE = c("Firm_ID"))
-          
+        
 rologitEst <- rcrologit(dataprep, stdErr="skip")
 ```

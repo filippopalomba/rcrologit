@@ -2,17 +2,15 @@
 ##########################################################################
 # computes the likelihood of the rank-ordered logit
 loglkld <- function(b0, X, J) {
-
-  eXb <- lapply(X, function(x) exp(x%*%b0))
   
+  eXb <- lapply(X, function(x) exp(x%*%b0))
   lkld <- 0
   for (j in seq_len(J-1)) {
     lkld <- lkld + log(eXb[[j]] / unlist(Reduce(`+`, eXb[c(j:J)])))
-  }  
-    
+  }
+  
   return(-sum(lkld))
 }
-
 
 ##########################################################################
 # computes the likelihood of the random coefficients rank-ordered logit
@@ -50,15 +48,15 @@ ccpGet <- function(bfix, bhet, bLam, X, J, bias.corr, approx.method, S, epsMC, N
     bfix <- matrix(bfix, nrow=S, ncol=length(bfix), byrow=TRUE)
     b_i <- cbind(bfix, b_i)  # fixed taste parameters come first
     
-    # apply to each row (i.e. draw) the ccpROLogit function to compute ccp of
+    # apply to each row (i.e. draw) the ccpRCROLogit function to compute ccp of
     # each unit's ranking. apply is going to store the ccp in a column vector
     # and then cbinds all of then. thus to get the MC approximation of the 
     # integral we average the result over columns (i.e. draws)
     if (Ncores == 1) {
-      ccp <- apply(b_i, 1, function(x) ccpROLogit(X, x, J))
+      ccp <- apply(b_i, 1, function(x) ccpRCROLogit(X, x, J))
     } else {
       b_list <- lapply(seq_len(nrow(b_i)), function(i) b_i[i,])
-      tmp <- parallel::mclapply(b_list, function(x) ccpROLogit(X, x, J), 
+      tmp <- parallel::mclapply(b_list, function(x) ccpRCROLogit(X, x, J), 
                                 mc.cores=Ncores)
       ccp <- matrix(unlist(tmp), nrow=nrow(X[[1]]), ncol=S, byrow=FALSE)
     }
@@ -85,8 +83,8 @@ ccpGet <- function(bfix, bhet, bLam, X, J, bias.corr, approx.method, S, epsMC, N
 }
 
 ##########################################################################
-# compute rank ordered logit ccp
-ccpROLogit <- function(X, b, J) {
+# compute random coefficients rank ordered logit ccp
+ccpRCROLogit <- function(X, b, J) {
   eXb <- lapply(X, function(x) exp(x%*%as.matrix(b)))
   rol <- 1
   for (j in seq_len(J-1)) {
