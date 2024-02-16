@@ -10,9 +10,7 @@ status](https://github.com/filippopalomba/rcrologit/workflows/R-CMD-check/badge.
 
 <!-- badges: end -->
 
-The package provides estimation and inferential procedures for
-rank-ordered logit model with agents with heterogeneous taste
-preferences.
+The package provides estimation and inferential procedures for rank-ordered logit model with agents with heterogeneous taste preferences.
 
 ## Setup
 
